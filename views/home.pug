@@ -1,0 +1,113 @@
+extends layout
+
+block content
+  .row
+    if !start
+      if survey
+        h1(style='margin:0px auto;') Available Survey
+        a.btn.btn-success.btn-lg.btn-block.rounded(href='/start')= survey.name
+      else
+        p.lead There are no active sessions at the moment.
+    else
+      h1(style='margin:0px auto;')= survey.name
+      p.lead!= survey.opening
+    
+      form(id="adcreate", action="/survey/submit", method='POST')
+        input(type='hidden', name='_csrf', value=_csrf)
+        input(type='hidden', name='session_id', value=session.cid)
+        input(type='hidden', name='session_name', value=session.name)
+        input(type='hidden', name='ques_id', value=survey.cid)
+        input(type='hidden', name='ques_name', value=survey.name)
+        input(type='hidden', name='closing_message', value=survey.closing)
+
+        each eval, evalInd in survey.evaluator
+          label.col-md.col-form-label.font-weight-bold.text-left(for="evaluator_"+evalInd)!= eval.question
+          .col-md.text-left
+            if eval.type == "choice"
+              if eval.optional
+                select.form-control(id="evaluator_"+evalInd, name="evaluator_"+evalInd, required)
+                  //option(value="") --- Select Answer ---
+                  - var currentList = []
+                  if (typeof eval.choices) == 'string'
+                    if eval.choices == 'teachers'
+                      each li in lists
+                        if li.name == eval.choices
+                          - currentList = li.data
+                      each choice in currentList
+                        option(value=choice.name)= choice.name
+                    else if eval.choices == 'subjects'
+                      each li in lists
+                        if li.name == 'teachers'
+                          - currentList = li.data
+                      each choice in currentList
+                        each sub in choice.subjects
+                          option(class='subject_choice '+ choice.name.replace(/ /g,'_').toLowerCase()+'_subjects' value=sub)=sub
+                    else if eval.choices == 'sections'
+                      each li in lists
+                        if li.name == 'subjects'
+                          - currentList = li.data
+                      each choice in currentList
+                        if choice.sections.length > 0
+                          each section in choice.sections
+                            option(class='section_choice '+choice.name.replace(/ /g,'_').toLowerCase()+'_sections' value=section)=section
+                        else
+                          option(class='section_choice '+choice.name.replace(/ /g,'_').toLowerCase()+'_sections' value='NA') Not Applicable
+                  else
+                    each choice in eval.choices
+                      option(value=choice.value)= choice.text
+              else
+                select.form-control(name="evaluator_"+evalInd)
+                  //option(value="") --- Select Answer ---
+                  if typeof eval.choices == "string"
+                    p= eval.choices
+                  else
+                    each choice in eval.choices
+                      option(value=choice.value)= choice.text
+            else if eval.type == "number"
+              if eval.optional
+                input.form-control(type="number", name="evaluator_"+evalInd)
+              else
+                input.form-control(type="number",name="evaluator_"+evalInd required)
+            else
+              if eval.optional
+                textarea.form-control(name="evaluator_"+evalInd, rows='1') 
+              else
+                textarea.form-control(name="evaluator_"+evalInd, rows='1' required)
+
+        label.col-md.col-form-label.font-weight-bold.text-left!= survey.instructions
+
+        - var letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+        - var letterInd = 0
+        each cat, catInd in survey.questions
+          hr
+          if cat.hide_category == "false"
+            p.lead= cat.category
+          each ques, quesInd in cat.questions
+            - var currentQuestion = ""
+            - var padding = ""
+            if ques.item_label == "number"
+              - currentQuestion = (quesInd+1)+".  " + ques.question
+              - letterInd = 0
+            else if ques.item_label == "letter"
+              - currentQuestion = (letters[letterInd])+".  " + ques.question
+              - padding = "padding-left:50px;"
+              - letterInd++
+            else
+              - currentQuestion = ques.question
+            if ques.heading != ""
+              label.col-md.col-form-label.font-weight-bold.text-left(style="font-size:20px;")!= "> "+ques.heading
+            
+            if ques.hide_question == "true"
+              label.col-md.col-form-label.font-weight-bold.text-left(for="q_"+catInd+"_"+quesInd)
+            else
+              label.col-md.col-form-label.font-weight-bold.text-left(for="q_"+catInd+"_"+quesInd style=padding)!= currentQuestion
+            .col-md.text-left(style=padding)
+              if ques.type == "choice"
+                select.form-control(name="q_"+catInd+"_"+quesInd, required)
+                  //option(value="") --- Select Answer ---
+                  each choice in ques.choices
+                    option(value=choice.value)= choice.text
+              else if ques.type == "input"
+                textarea.form-control(name="q_"+catInd+"_"+quesInd, rows='3')
+            br
+        input.btn.btn-raised(id='submit_survey', type='submit', value='Submit Survey')

@@ -1,0 +1,132 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    meta(name='theme-color' content='#4DA5F4')
+    meta(name='csrf-token', content=_csrf)
+    title #{title} - HOPE Academy
+    link(rel='shortcut icon', href='/favicon.png')
+    link(rel='stylesheet', href='/css/main.css')
+    block head
+    
+    script(src='/js/lib/jquery.min.js')
+    script(src='/js/lib/popper.min.js')
+    script(src='/js/lib/bootstrap.min.js')
+    script(src='/js/main.js')
+
+  body
+    .container
+      .row
+ 
+        each teacher in teachers
+ 
+          - var filteredAnswerList = []
+          each sub in subjects
+            each ans in fullAnswerList
+              if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher }) && ans.evaluator_1 == sub
+                - filteredAnswerList.push(ans)
+                
+          h1= JSON.stringify(filteredAnswerList)
+
+          table.table.table-sm.table-bordered(style="margin-bottom:5rem;")
+            tr
+              th
+                h2= teacher
+            
+            each cat, catInd in questions.questions
+              each quest, questInd in cat.questions
+                if quest.type == 'choice'
+                  tr
+                    td!= (questInd+1)+". "+quest.question
+
+  //.container
+    .row
+      each teacher in teachers
+        table.table.table-sm.table-bordered(style="margin-bottom:5rem;")
+          tr
+          th(colspan=4)
+            h1
+              h2= teacher
+          tr
+            - var filteredAnswerList = []
+            each ans in fullAnswerList
+              if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher })
+                - filteredAnswerList.push(ans)
+
+            - var allAnsTot = 0
+            - var allAnsCount = 0
+            - var breakDown = ''
+            each cat, catInd in questions.questions
+              each quest, questInd in cat.questions
+                if quest.type == 'choice'
+                  - allAnsCount++
+                  - var questTot = 0
+                  each ans in filteredAnswerList
+                    - questTot += (ans['q_'+catInd+'_'+questInd]*1)
+                  - allAnsTot += questTot/filteredAnswerList.length
+                  if questInd%10 == 0
+                    if breakDown != ''
+                      - breakDown += "</p>"
+                    - breakDown += "<p>"
+                  if (questInd+1) < 10
+                    - breakDown += "<b>Item 0"+(questInd+1)+":</b><span style='font-size:15px;'> "+(questTot/filteredAnswerList.length).toFixed(2)+"</span>&nbsp\n\n"
+                  else  
+                    - breakDown += "<b>Item "+(questInd+1)+":</b><span style='font-size:15px;'> "+(questTot/filteredAnswerList.length).toFixed(2)+"</span>&nbsp\n\n"
+            td
+              p!= "<b><u>Overall Score</u></b>"
+              p!= (allAnsTot).toFixed(2)+'/'+(allAnsCount)+' = <span style="font-size:20px;">'+(allAnsTot/allAnsCount).toFixed(2)+"</span>"
+            td(colspan=4)
+              p!= breakDown
+
+          each sub in subjects
+            - var filteredAnswerList = []
+            each ans in fullAnswerList
+              if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher }) && ans.evaluator_1 == sub
+                - filteredAnswerList.push(ans)
+                
+            if filteredAnswerList.length > 0
+              - var allAnsTot = 0
+              - var allAnsCount = 0
+              - var breakDown = ''
+              each cat, catInd in questions.questions
+                each quest, questInd in cat.questions
+                  if quest.type == 'choice'
+                    - allAnsCount++
+                    - var questTot = 0
+                    each ans in filteredAnswerList
+                      - questTot += (ans['q_'+catInd+'_'+questInd]*1)
+                    - allAnsTot += questTot/filteredAnswerList.length
+                    if questInd%10 == 0
+                      if breakDown != ''
+                        - breakDown += "</p>"
+                      - breakDown += "<p>"
+                    if (questInd+1) < 10
+                      - breakDown += "<b>Item 0"+(questInd+1)+":</b><span style='font-size:15px;'> "+(questTot/filteredAnswerList.length).toFixed(2)+"</span>&nbsp\n\n"
+                    else  
+                      - breakDown += "<b>Item "+(questInd+1)+":</b><span style='font-size:15px;'> "+(questTot/filteredAnswerList.length).toFixed(2)+"</span>&nbsp\n\n"
+              tr
+                td
+                  p!= "<b><u>"+sub+" Score</u></b>"
+                  p!= (allAnsTot).toFixed(2)+'/'+(allAnsCount)+' = <span style="font-size:20px;">'+(allAnsTot/allAnsCount).toFixed(2)+"</span>"
+                td(colspan=4)    
+                  p!= breakDown
+
+          tr
+            td
+              p.lead= "All Remarks"
+            td(colspan=4)
+              - var filteredAnswerList = []
+              - var remarksText = ''
+              each ans,ansInd in fullAnswerList
+                if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher }) && ans.evaluator_1 == sub
+                  - filteredAnswerList.push(ans)
+                if ans['q_0_20'] != ''
+                  if (ansInd%3) == 0
+                    if remarksText != ''
+                      - remarksText += '</p>'
+                    else
+                      - remarksText += '<p>'
+                  - remarksText += "<span style='font-size:10px;'><i>"+ans['q_0_20']+"</i></span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp"
+              div!= remarksText
