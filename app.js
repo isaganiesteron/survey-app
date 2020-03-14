@@ -9,20 +9,19 @@ const logger = require('morgan');
 const chalk = require('chalk');
 const errorHandler = require('errorhandler');
 const lusca = require('lusca');
-const dotenv = require('dotenv');
 const flash = require('express-flash');
 const path = require('path');
 const tcpPortUsed = require('tcp-port-used');
-const open = require('open');
 const interfaces = require('os').networkInterfaces();
+const open = require('open');
 
 let addresses = [];
 for (var k in interfaces) {
-  for (var k2 in interfaces[k]) {
-    var address = interfaces[k][k2];
-    if (address.family === 'IPv4' && !address.internal)
-      addresses.push(address.address);
-  }
+	for (var k2 in interfaces[k]) {
+		var address = interfaces[k][k2];
+		if (address.family === 'IPv4' && !address.internal)
+			addresses.push(address.address);
+	}
 }
 url = addresses[0]
 
@@ -53,41 +52,41 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(session({
-  resave: true,
-  saveUninitialized: true,
-  secret: '123123123123',
-  cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
+	resave: true,
+	saveUninitialized: true,
+	secret: '123123123123',
+	cookie: { maxAge: 1209600000 }, // two weeks in milliseconds
 }));
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
-    // Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
-    next();
-  } else {
-    lusca.csrf()(req, res, next);
-  }
+	if (req.path === '/api/upload') {
+		// Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
+		next();
+	} else {
+		lusca.csrf()(req, res, next);
+	}
 });
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.disable('x-powered-by');
 app.use((req, res, next) => {
-  //res.locals.user = req.user;
-  res.locals.user = req.session.user
-  next();
+	//res.locals.user = req.user;
+	res.locals.user = req.session.user
+	next();
 });
 app.use((req, res, next) => {
-  // After successful login, redirect back to the intended page
-  if (!req.user
-    && req.path !== '/login'
-    && req.path !== '/signup'
-    && !req.path.match(/^\/auth/)
-    && !req.path.match(/\./)) {
-    req.session.returnTo = req.originalUrl;
-  } else if (req.user
-    && (req.path === '/account' || req.path.match(/^\/api/))) {
-    req.session.returnTo = req.originalUrl;
-  }
-  next();
+	// After successful login, redirect back to the intended page
+	if (!req.user
+		&& req.path !== '/login'
+		&& req.path !== '/signup'
+		&& !req.path.match(/^\/auth/)
+		&& !req.path.match(/\./)) {
+		req.session.returnTo = req.originalUrl;
+	} else if (req.user
+		&& (req.path === '/account' || req.path.match(/^\/api/))) {
+		req.session.returnTo = req.originalUrl;
+	}
+	next();
 });
 app.use('/', express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use('/webfonts', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'), { maxAge: 31557600000 }));
@@ -129,13 +128,13 @@ app.post('/account/profile', userController.postUpdateProfile);
  * Error Handler.
  */
 if (process.env.NODE_ENV === 'development') {
-  // only use in development
-  app.use(errorHandler());
+	// only use in development
+	app.use(errorHandler());
 } else {
-  app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).send('Server Error');
-  });
+	app.use((err, req, res, next) => {
+		console.error(err);
+		res.status(500).send('Server Error');
+	});
 }
 
 /**
@@ -144,20 +143,20 @@ if (process.env.NODE_ENV === 'development') {
 
 //let listener = app.listen(0, url, () => {
 portNumber = 80
-tcpPortUsed.check(3000, 'localhost').then(function(inUse) {
-  if(inUse)
-    portNumber = 0
-  
-  let listener = app.listen(portNumber, url, () => {
-    if(!inUse)
-      console.log('%s App is running at http://'+url+' in %s mode', chalk.green('✓'), app.get('env'));
-    else
-      console.log('%s App is running at http://'+url+':%d in %s mode', chalk.green('✓'), listener.address().port, app.get('env'));
-    console.log('Press CTRL-C to stop\n');
-    //open('http://'+url+':'+listener.address().port+'/admin');
-  })
-}, function(err) {
-    console.error('Error on check:', err.message);
+tcpPortUsed.check(3000, 'localhost').then(function (inUse) {
+	if (inUse)
+		portNumber = 0
+
+	let listener = app.listen(portNumber, url, () => {
+		if (!inUse)
+			console.log('%s App is running at http://' + url + ' in %s mode', chalk.green('✓'), app.get('env'));
+		else
+			console.log('%s App is running at http://' + url + ':%d in %s mode', chalk.green('✓'), listener.address().port, app.get('env'));
+		console.log('Press CTRL-C to stop\n');
+		//open('http://'+url+':'+listener.address().port+'/admin');
+	})
+}, function (err) {
+	console.error('Error on check:', err.message);
 });
 
 module.exports = app;
