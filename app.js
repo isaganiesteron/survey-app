@@ -32,7 +32,6 @@ url = addresses[0]
 const adminController = require('./controllers/admin');
 const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
-/**
 
 /**
  * Create Express server.
