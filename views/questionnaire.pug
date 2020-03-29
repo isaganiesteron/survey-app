@@ -1,0 +1,78 @@
+extends layout
+
+
+block content
+
+	ul.nav.nav-tabs
+		li.nav-item
+			a.nav-link(href='/overview') Overview
+		li.nav-item
+			a.nav-link(href='/sessions') Session
+		li.nav-item
+			a.nav-link(href='/teachers') Teachers
+		li.nav-item
+			a.nav-link(href='/subjects') Subjects and Section
+		li.nav-item
+			a.nav-link.active(href='/questionnaires') Questionnaires
+	br
+
+	table.table.table-condensed.table-hover.ads-table
+		tr
+			th ID
+			th Name
+			th Created At
+			th Edit Question Labels
+			each question in questions
+				tr
+					td= question.cid
+					td= question.name
+					td= question.$created
+					td
+						a(href='/questionnaires?id='+question.cid) Edit
+
+	if single
+		form(action="/questionnaire/update", method='POST')
+			input(type='hidden', name='_csrf', value=_csrf)
+			input(type='hidden', name='questionnaireId', value=single.cid)
+
+			.form-group
+				label.col-md-2.col-form-label.font-weight-bold(for='name') Questionnaire Name
+				//.col-md-10
+				input.form-control(type='text', name='name' value=single.name)
+				small.form-text.text-muted We'll never share your email with anyone else.
+
+			.form-group
+				label.col-md-2.col-form-label.font-weight-bold(for='instructions') Instructions
+				//.col-md-10
+				input.form-control(type='text', name='instructions' value=single.instructions)
+
+			.form-group
+				label.col-md-2.col-form-label.font-weight-bold(for='opening') Opening
+				//.col-md-10
+				input.form-control(type='text', name='opening' value=single.opening)
+
+			.form-group
+				label.col-md-2.col-form-label.font-weight-bold(for='closing') Closing
+				//.col-md-10
+				input.form-control(type='text', name='closing' value=single.closing)
+
+			each evaluator, evaluatorInd in single.evaluator
+				.form-group
+					label.col-md-2.col-form-label.font-weight-bold(for='evaluator_'+evaluatorInd)= "evaluator_" + evaluatorInd
+					//.col-md-10
+					input.form-control(type='text', name='evaluator_'+evaluatorInd value=evaluator.question)
+
+			each category, categoryInd in single.questions
+				each question, questionInd in category.questions
+
+					.form-group
+						label.col-md-2.col-form-label.font-weight-bold(for="question_" + categoryInd + "_"+questionInd)= categoryInd + "_" + questionInd
+						//.col-md-10
+						if question.type
+						input.form-control(type='text', name="question_" + categoryInd + "_" + questionInd value=question.question)
+						small.form-text.text-muted= "Type: "+question.type
+
+			.form-group
+				label.col-md-2.col-form-label.font-weight-bold
+				.col-md-3
+					input.btn.btn-raised(type='submit', value='Update Questionnaire')

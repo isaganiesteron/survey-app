@@ -1,27 +1,26 @@
 How to run the app
 	- simply double click on 'hope-survey-app.exe' icon.
 	- you should see something similar to this:
-		✓ App is running at http://[local_ip_address] in production mode
+		App is running at http://[local_ip_address] in production mode
 		Press CTRL-C to stop
 	- a window will open in your default browser where you can login.
 	- devices that are connected to the network can now visit http://[local_ip_address] to access the app.
-	
+
 	notes:
 		**make sure that the computer you are running the app on is connected to a network.
 		**keep the app window running to make the app usable.
-		
 
 Default Credentials:
 	username: admin
 	password: 12345678
-	
+
 Troubleshooting:
 	Problem: 
 		- The app seems to be frozen or is hanging.
 	Solution:
 		- Click on the app window and press any key.
 		- Close the app window and restart again.
-	
+
 Starting a session:
 	- Under 'Create new session' enter Session Name and Choose the Questionnaire
 	- If you cannot see 'Create new session' make sure that there are no sessions that are currently 'Active'

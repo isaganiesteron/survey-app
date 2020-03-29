@@ -1,0 +1,84 @@
+extends layout
+
+
+block content
+
+	ul.nav.nav-tabs
+		li.nav-item
+			a.nav-link(href='/overview') Overview
+		li.nav-item
+			a.nav-link(href='/sessions') Session
+		li.nav-item
+			a.nav-link(href='/teachers') Teachers
+		li.nav-item
+			a.nav-link.active(href='/subjects') Subjects and Sections
+		li.nav-item
+			a.nav-link(href='/questionnaires') Questionnaires
+	br
+
+	table.table.table-condensed.table-hover.ads-table
+		tr
+			th Name
+			th Sections
+			th Add Section
+			th Remove Subject
+		each subject in subjects
+			tr
+				td= subject.name
+				td
+					each section in subject.sections
+						p= section
+							button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_"+subject.cid+"_"+section.replace(/ /g,'_'))= '[Remove '+section+']'
+							div( class="modal fade", id="confirm_"+subject.cid+"_"+section.replace(/ /g,'_'), role="dialog")
+								div( class="modal-dialog")
+									div( class="modal-content")
+										div( class="modal-header")
+											h4( class="modal-title") Are you sure?
+											button( type="button", class="close", data-dismiss="modal") X
+										div( class="modal-body")
+											p= 'Are you sure you want to remove ' + section + ' from subject ' + subject.name
+										div( class="modal-footer")
+											button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+											button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/section/remove?id='+subject.cid+'&name='+section.replace(/ /g,'_')) Yes, Remove Section
+				td
+					form(action="/section/add", method='POST')
+						input(type='hidden', name='_csrf', value=_csrf)
+						input(type='hidden', name='section_subject', value=subject.cid)
+
+						//.form-group.row
+						.form-row
+							.col-3
+								label.col-md-2.col-form-label.font-weight-bold.text-right(for='section_name') Section Name
+							.col-5
+								input.form-control(type='text', name='section_name' required)
+							.col-1
+								input.btn.btn-raised(type='submit', value='Add Section')
+				td
+					button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_"+subject.cid)= '[Remove '+subject.name+']'
+					div( class="modal fade", id="confirm_"+subject.cid, role="dialog")
+						div( class="modal-dialog")
+							div( class="modal-content")
+								div( class="modal-header")
+									h4( class="modal-title") Are you sure?
+									button( type="button", class="close", data-dismiss="modal") X
+								div( class="modal-body")
+									p= 'Are you sure you want to remove ' + subject.name
+								div( class="modal-footer")
+									button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+									button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/subject/remove?id='+subject.cid) Yes, Remove Subject
+
+		tr
+			td(colspan='4')
+				p.lead Add Subject
+				form(action="/subject/add", method='POST')
+					input(type='hidden', name='_csrf', value=_csrf)
+
+					.form-group.row
+						label.col-md-2.col-form-label.font-weight-bold.text-right(for='subject_name') Subject Name
+						.col-md-3
+							input.form-control(type='text', name='subject_name' required)
+
+					.form-group.row
+						label.col-md-2.col-form-label.font-weight-bold.text-right
+						.col-md-3
+							input.btn.btn-raised(type='submit', value='Add Subject')

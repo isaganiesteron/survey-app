@@ -1,252 +1,241 @@
-extends layout
+extend layout
 
 block content
-  h1 Session Info
-  table.table.table-condensed.table-hover
-    tr
-      th ID
-      th Name
-      th Status
-      th Questionnaire
-      th Responders
-      th Date
-      th
-      
-    tr
-      td= session.cid
-      td= session.name
-      if session.active
-        td Currently Active
-      else 
-        td Inactive
-      td= questions.name
-      td= fullAnswerList.length
-      td= session.createdAt
-      td
-        button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_"+session.cid)= '[Delete Session]'
-        div( class="modal fade", id="confirm_delete_"+session.cid, role="dialog")
-            div( class="modal-dialog")
-                div( class="modal-content")
-                    div( class="modal-header")
-                        h4( class="modal-title") Are you sure?
-                        button( type="button", class="close", data-dismiss="modal") X
-                    div( class="modal-body")
-                        p= 'Are you sure you want to delete ' + session.name
-                    div( class="modal-footer")
-                        button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
-                        button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/delete?id='+session.cid) Yes, Remove Session
+
+	ul.nav.nav-tabs
+		li.nav-item
+			a.nav-link.active(href='/sessions') Session
+		li.nav-item
+			a.nav-link(href='/teachers') Teachers
+		li.nav-item
+			a.nav-link(href='/subjects') Subjects and Sections
+		li.nav-item
+			a.nav-link(href='/questionnaires') Questionnaires
+
+	h1 Session Info
+	table.table.table-condensed.table-hover
+		tr
+			th ID
+			th Name
+			th Status
+			th Questionnaire
+			th Responders
+			th Date
+			th
+		tr
+			td= session.cid
+			td= session.name
+			if session.active
+				td Currently Active
+			else 
+				td Inactive
+			td= questions.name
+			td= session.answers.length
+			td= session.createdAt
+			td
+				button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_session_"+session.cid)= '[Delete Session]'
+				div( class="modal fade", id="confirm_delete_session_"+session.cid, role="dialog")
+					div( class="modal-dialog")
+						div( class="modal-content")
+							div( class="modal-header")
+								h4( class="modal-title") Are you sure?
+								button( type="button", class="close", data-dismiss="modal") X
+							div( class="modal-body")
+								p= 'Are you sure you want to delete ' + session.name
+							div( class="modal-footer")
+								button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+								button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/delete?id='+session.cid) Yes, Remove Session
+
+	if questions.structured == "true"
+		table.table.table-condensed.table-hover
+			tr
+				th Teacher
+				th Subject
+				th Sections
+
+			each teacher in summary
+				tr
+					td
+						h4= teacher.name
+						p= "Based on "+ teacher.score.count +" responders."
+						p= 'Average Score: '+(teacher.score.total/teacher.score.count).toFixed(2)
+						p
+							a(href='/session/results?id='+session.cid+'&teacher='+teacher.name)= 'View detailed overall results'
+					td
+						each subject in teacher.subjects
+							span.lead!= "<u>"+subject.name+"</u>"
+							span.small= " ("+subject.sections.length+" sections)"
+							p= "Based on "+ subject.score.count +" responders."
+							p= 'Average Score: '+(subject.score.total/subject.score.count).toFixed(2)
+							p
+								a(href='/session/results?id='+session.cid+'&teacher='+teacher.name+'&subject='+subject.name)= 'View detailed results for '+subject.name
+							- var a = (subject.sections.length-1)*4
+							while a > 0
+								br
+								br
+								- a--
+					td
+						each subject in teacher.subjects
+							each section in subject.sections
+								span.lead!= "<u>"+section.name+"</u>"
+								span.small= " ("+subject.name+")"
+								p= "Based on "+ section.score.count +" responders."
+								p= 'Average Score: '+(section.score.total/section.score.count).toFixed(2)
+								p
+									a(href='/session/results?id='+session.cid+'&teacher='+teacher.name+'&subject='+subject.name+'&section='+section.name)= 'View detailed results for '+section.name
+
+		div#results_area
+		if filter.single || filter.teacher || filter.subject || filter.section
+			if filter.single
+				h1 Single Result
+				p
+					button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_single_"+filter.single._id)= '[DELETE THIS RESPONSE]'
+					div( class="modal fade", id="confirm_delete_single_"+filter.single._id, role="dialog")
+						div( class="modal-dialog")
+							div( class="modal-content")
+								div( class="modal-header")
+									h4( class="modal-title") Are you sure?
+									button( type="button", class="close", data-dismiss="modal") X
+								div( class="modal-body")
+									p= 'Are you sure you want to remove the response of ' + filter.single.evaluator_2 + ' (id: '+filter.single._id+')'
+								div( class="modal-footer")
+									button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+									button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/results/remove?id='+session.cid+'&result='+filter.single._id) Yes, Delete this response
+				p= 'Show results from a single responder '+filter.single.evaluator_3
+				p= 'Responder: '+filter.single.evaluator_3
+				p= 'Subject: '+filter.single.evaluator_1
+				p= 'Section: '+filter.single.evaluator_2
+				p= 'Teacher: '+filter.single.evaluator_0
 
 
-  div#info
-  h1 Session Result Info
-  //a(href='/session/results/print?id='+session.cid, target='_blank') [Print friendly view]
-  //br
-  //br
+				table.table.table-condensed.table-hover.table-responsive
+					tr
+						th Category. Item
+						th Question
+						th Answer
+							each cat, catInd in questions.questions
+								each quest, questInd in cat.questions
+									//p!= (questInd+1) +') '+quest.question
+									//p(style='padding-left:10px;')!=filter.single['q_'+catInd+'_'+questInd]
+									tr
+										td
+											p= (catInd+1) +'. '+ (questInd+1)
+										td
+											p!= quest.question
+										td
+											p(style='padding-left:10px;')!= filter.single['q_'+catInd+'_'+questInd]
 
-  table.table.table-condensed.table-hover
-    tr
-      th Teacher
-      th Subject
-      th Section
-      th Overall
-      each teacher in teachers
-        tr
-          td
-            p.lead= teacher
-          td
-            each sub in subjects
-              //each sub in teacher.subjects
-              - var answerList = []
-              each ans in fullAnswerList
-                if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher }) && ans.evaluator_1 == sub
-                  - answerList.push(ans)
-              if answerList.length > 0
-                - var answersTotal = 0
-                each ans in answerList
-                  - var curAnswersTotal = 0
-                  - var curAnswersTotalCount = 0
-                  each cat, catInd in questions.questions
-                    each quest, questInd in cat.questions
-                      if quest.type == 'choice'
-                        - curAnswersTotal += (ans['q_'+catInd+'_'+questInd]*1)
-                        - curAnswersTotalCount ++
-                        
-                  - answersTotal += (curAnswersTotal/curAnswersTotalCount)
-
-                span!= "<u>"+sub+"</u>"
-                br
-                span= 'Average Score: '+(answersTotal/answerList.length).toFixed(2)
-                br
-                a(href='/session/results?id='+session.cid+'&teacher='+teacher+'&subject='+sub)= 'View detailed results for '+sub
-                br
-                br
-          td
-            each section in sections
-              - var answerList = []
-              each ans in fullAnswerList
-                if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher }) && ans.evaluator_2 == section
-                  - answerList.push(ans)
-              if answerList.length > 0
-                - var answersTotal = 0
-                each ans in answerList
-                  - var curAnswersTotal = 0
-                  - var curAnswersTotalCount = 0
-                  each cat, catInd in questions.questions
-                    each quest, questInd in cat.questions
-                      if quest.type == 'choice'
-                        - curAnswersTotal += (ans['q_'+catInd+'_'+questInd]*1)
-                        - curAnswersTotalCount ++
-                        
-                  - answersTotal += (curAnswersTotal/curAnswersTotalCount)
-                span!= "<u>"+section+"</u>"
-                br
-                span= 'Average Score: '+(answersTotal/answerList.length).toFixed(2)
-                br
-                a(href='/session/results?id='+session.cid+'&teacher='+teacher+'&section='+section)= 'View detailed results for '+section
-                br
-                br
-          td
-            - var answerList = []
-            each ans in fullAnswerList
-              if ans.evaluator_0 == teachers.find((teach) => { return teach == teacher })
-                - answerList.push(ans)
-            if answerList.length < 1
-              p           
-                span 0 responders
-            else
-              - var answersTotal = 0
-              each ans in answerList
-                - var curAnswersTotal = 0
-                - var curAnswersTotalCount = 0
-                each cat, catInd in questions.questions
-                  each quest, questInd in cat.questions
-                    if quest.type == 'choice'
-                      - curAnswersTotal += (ans['q_'+catInd+'_'+questInd]*1)
-                      - curAnswersTotalCount ++
-
-                - answersTotal += (curAnswersTotal/curAnswersTotalCount)
-              span= 'Average Score: '+(answersTotal/answerList.length).toFixed(2)
-              br
-              a(href='/session/results?id='+session.cid+'&teacher='+teacher)= 'View detailed overall results'
-
-  div#results_area
-  h1 Results
-  if filter[0]
-    p      
-      button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_"+filteredAnswerList[0]._id)= '[DELETE THIS RESPONSE]'
-      div( class="modal fade", id="confirm_delete_"+filteredAnswerList[0]._id, role="dialog")
-          div( class="modal-dialog")
-              div( class="modal-content")
-                  div( class="modal-header")
-                      h4( class="modal-title") Are you sure?
-                      button( type="button", class="close", data-dismiss="modal") X
-                  div( class="modal-body")
-                      p= 'Are you sure you want to remove the response of ' + filteredAnswerList[0].evaluator_2 + ' (id: '+filteredAnswerList[0]._id+')'
-                  div( class="modal-footer")
-                      button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
-                      button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/results/remove?id='+session.cid+'&result='+filteredAnswerList[0]._id) Yes, Delete this response
-    p= 'Show results from a single responder '+filteredAnswerList[0].evaluator_3
-    p= 'Responder: '+filteredAnswerList[0].evaluator_3
-    p= 'Subject: '+filteredAnswerList[0].evaluator_1
-    p= 'Section: '+filteredAnswerList[0].evaluator_2
-    p= 'Teacher: '+filteredAnswerList[0].evaluator_0
+			else
+				h1 Filtered Result
+				- var scores = []
+				- var filtered = []
+				if filter.section
+					p.lead!= "Teacher: <u>"+filter.teacher+"</u>, Subject: <u>"+filter.subject+"</u>, Section: <u>"+filter.section+"</u>"
+				else if filter.subject
+					p.lead!= "Teacher: <u>"+filter.teacher+"</u>, Subject: <u>"+filter.subject+"</u>"
+				else if filter.teacher
+					p.lead!= "Teacher: <u>"+filter.teacher+"</u>"
 
 
-      table.table.table-condensed.table-hover.table-responsive
-        tr
-          th Category. Item
-          th Question
-          th Answer
-          each cat, catInd in questions.questions
-            each quest, questInd in cat.questions
-              //p!= (questInd+1) +') '+quest.question
-              //p(style='padding-left:10px;')!=filteredAnswerList[0]['q_'+catInd+'_'+questInd]
+				each teacher in summary
+					if filter.teacher== teacher.name
+						- scores = teacher.score
+						- filtered = teacher.answers
+						each subject in teacher.subjects
+							if filter.subject == subject.name
+								- scores = subject.score
+								- filtered = subject.answers
+								each section in subject.sections
+									if filter.section == section.name
+										- scores = section.score
+										- filtered = section.answers
 
-              tr
-                td
-                  p= (catInd+1) +'. '+ (questInd+1)
-                td
-                  p!= quest.question
-                td
-                  p(style='padding-left:10px;')!= filteredAnswerList[0]['q_'+catInd+'_'+questInd]
+				table.table.table-condensed.table-hover.table-responsive
+					tr
+						th Question
+						th Average Score
+						each cat, catInd in questions.questions
+							each quest, questInd in cat.questions
+								if quest.type == 'choice'
+									tr
+										td
+											p!= (questInd+1)+') '+quest.question
+										td
+											p!= scores.each['q_'+catInd+'_'+questInd] +" / "+scores.count + " = " + (scores.each['q_'+catInd+'_'+questInd] / scores.count).toFixed(2)
+						tr
+							td(style='text-align:right;font-weight:bold;') Overall Average:
+							td= (scores.total).toFixed(2)+'/'+(scores.count).toFixed(2)+' = '+(scores.total/scores.count).toFixed(2)
 
-  else 
-    if filter[1] || filter[2] || filter[3]
-      p= 'Displaying results for '
-        if filter[1]
-          span!= ' teacher <u>'+teachers.find((teach) => { return teach == filter[1] })+'</u>'
-          
-          if filter[2] || filter[3] 
-            if filter[2] && filter[3]
-              span!= ' and subject <u>'+filter[2] +'</u> and section <u>'+filter[3]+'</u>'
+				hr
+				div#responder_area
+				h3 All responders
 
-            else if filter[2]
-              span!= ' subject <u>'+filter[2]+'</u>'
-                  
-            else if filter[3]
-              span!= ' section <u>'+filter[3]+'</u>'
-            
-      
-      if filter[1]
-        if filter[2] || filter[3] 
-          if filter[3] && !filter[2]
-            each sub in subjects
-              span="Display results for "+filter[3]+" and "
-                a(href='/session/results?id='+session.cid+'&teacher='+filter[1]+'&subject='+sub+'&section='+filter[3])= sub
-              br
-              
-          if filter[2] && !filter[3]
-            each sub in subjects
-              if sub.name == filter[2]
-                each section in sub.sections
-                  span="Display results for "+filter[2]+" and "
-                    a(href='/session/results?id='+session.cid+'&teacher='+filter[1]+'&subject='+filter[2]+'&section='+section)= section
-                  br
+				table.table.table-condensed.table-hover.table-responsive
+					tr
+						th Responder
+							each cat, catInd in questions.questions
+								each quest, questInd in cat.questions
+									th= 'Category:'+(catInd+1)+' Question:'+(questInd+1)
 
-      span= 'Based on '+filteredAnswerList.length+' responders.'
+					each ans in filtered
+						tr.table-row(data-href='/session/results?id='+session.cid+'&single='+ans._id)
+							td= ans.evaluator_3
+								each cat, catInd in questions.questions
+									each quest, questInd in cat.questions
+										td= ans['q_'+catInd+'_'+questInd]
 
-      br
-      table.table.table-condensed.table-hover
-        tr
-          th Question
-          th Average Score
+	else
+		- var response_average = {}
+		- var total_questions = 0
+		- var choices = []
+		table.table.table-condensed.table-hover.table-responsive
+			tr
+				th Section and Question
+				each ans in session.answers
+					- res_name = ans.evaluator_0
+					if res_name == " "
+						- res_name = "Anonymous"
+						
+					th!= res_name
+						button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_single2_"+ans._id)= '[DELETE THIS RESPONSE]'
+						div( class="modal fade", id="confirm_delete_single2_"+ans._id, role="dialog")
+							div( class="modal-dialog")
+								div( class="modal-content")
+									div( class="modal-header")
+										h4( class="modal-title") Are you sure?
+										button( type="button", class="close", data-dismiss="modal") X
+									div( class="modal-body")
+										p= 'Are you sure you want to remove the response of ' + ans.evaluator_0 + ' (id: '+ans._id+')'
+									div( class="modal-footer")
+										button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+										button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/results/remove?id='+session.cid+'&result='+ans._id) Yes, Delete this response
+					
+					- response_average[ans._id] = 0
 
-        - var allAnsTot = 0
-        - var allAnsCount = 0
-        each cat, catInd in questions.questions
-          each quest, questInd in cat.questions
-            if quest.type == 'choice'
-              - allAnsCount++
-              - var questTot = 0
-              each ans in filteredAnswerList
-                - questTot += (ans['q_'+catInd+'_'+questInd]*1)
-              - allAnsTot += questTot/filteredAnswerList.length
-              tr
-                td
-                  p!= (questInd+1)+') '+quest.question
-                td
-                  p= questTot+'/'+filteredAnswerList.length+' = '+(questTot/filteredAnswerList.length).toFixed(2)
+				each cat, catInd in questions.questions
+					each quest, questInd in cat.questions
+						if quest.type == 'choice'
+							- total_questions++
+							tr
+								td
+									p= (catInd+1)+'.'+(questInd+1)+' '+quest.question
+								each ans in session.answers
+									- choices = quest.choices
+									td
+										p= ans['q_'+catInd+'_'+questInd]+" = "+quest.choices.find( ({ value }) => value === ans['q_'+catInd+'_'+questInd] ).text
+									
+									- response_average[ans._id] += (ans['q_'+catInd+'_'+questInd]*1)
+						else if quest.type == 'input'
+							tr
+								td
+									p!= (catInd+1)+'.'+(questInd+1)+' '+quest.question
+								each ans in session.answers
+									td
+										p= ans['q_'+catInd+'_'+questInd]
 
-        tr
-          td(style='text-align:right;font-weight:bold;') Overall Average:
-          td= (allAnsTot).toFixed(2)+'/'+(allAnsCount)+' = '+(allAnsTot/allAnsCount).toFixed(2)
-
-      hr
-      div#responder_area
-      h3 All responders
-      
-      table.table.table-condensed.table-hover.table-responsive
-        tr
-          th Responder
-          each cat, catInd in questions.questions
-            each quest, questInd in cat.questions
-              th= 'Category:'+(catInd+1)+' Question:'+(questInd+1)
-
-        each ans in filteredAnswerList
-          tr.table-row(data-href='/session/results?id='+session.cid+'&single='+ans._id)
-            td= ans.evaluator_3
-            each cat, catInd in questions.questions
-              each quest, questInd in cat.questions
-                td= ans['q_'+catInd+'_'+questInd]
-
-        
+				tr
+					td(style='text-align:right;font-weight:bold;') Overall Average:
+					
+					each average in response_average
+						td= (average/total_questions) 
+							p= choices.find( ({ value }) => value === (Math.round(average/total_questions)).toString() ).text

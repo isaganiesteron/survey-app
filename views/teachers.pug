@@ -1,0 +1,92 @@
+extends layout
+
+
+block content
+
+	ul.nav.nav-tabs
+		li.nav-item
+			a.nav-link(href='/overview') Overview
+		li.nav-item
+			a.nav-link(href='/sessions') Session
+		li.nav-item
+			a.nav-link.active(href='/teachers') Teachers
+		li.nav-item
+			a.nav-link(href='/subjects') Subjects and Sections
+		li.nav-item
+			a.nav-link(href='/questionnaires') Questionnaires
+	br
+
+	div#teachers_list_area
+	table.table.table-condensed.table-hover.ads-table
+		tr
+			th 
+			th Name
+			th Subjects Taught
+			th Remove Teacher
+		each teacher, teacherInd in teachers
+			tr
+				td= (teacherInd+1)
+				td
+					p.lead= teacher.name
+				td
+					each sub,subInd in teacher.subjects
+						p= sub
+							button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_"+teacher.cid+'_'+subInd)= '[Remove]'
+							div( class="modal fade", id="confirm_"+teacher.cid+'_'+subInd, role="dialog")
+								div( class="modal-dialog")
+									div( class="modal-content")
+										div( class="modal-header")
+											h4( class="modal-title") Are you sure?
+											button( type="button", class="close", data-dismiss="modal") X
+										div( class="modal-body")
+											p= 'Are you sure you want to remove '+sub+' from ' + teacher.name + 's subject list?'
+										div( class="modal-footer")
+											button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+											button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/teachers/removeSubject?id='+teacher.cid+'&subject='+subInd) Yes, Remove Subject
+				td 
+					button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_"+teacher.cid)= '[Remove '+teacher.name+']'
+					div( class="modal fade", id="confirm_"+teacher.cid, role="dialog")
+						div( class="modal-dialog")
+							div( class="modal-content")
+								div( class="modal-header")
+									h4( class="modal-title") Are you sure?
+									button( type="button", class="close", data-dismiss="modal") X
+								div( class="modal-body")
+									p= 'Are you sure you want to remove ' + teacher.name
+								div( class="modal-footer")
+									button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+									button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/teachers/remove?id='+teacher.cid) Yes, Remove Teacher
+			//tr
+			//td(colspan='4')
+
+	div#update_teacher_area
+	h4 Add or Update Teacher
+	p.info To add a teacher, enter teachers name and select all the subjects taught.
+	p.info To update a teacher subject, enter existing teachers name and select all the subjects taught.
+	form(action="/teachers/add", method='POST')
+		input(type='hidden', name='_csrf', value=_csrf)
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right(for='teacher_name') Add new teacher
+			.col-md-5
+				input.form-control(type='text', name='teacher_name')
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right(for='teacher_update') Update existing teacher
+			.col-md-3
+				select.form-control(name="teacher_update")
+					option(value='') Choose Teacher to Update
+					each teacher, teacherInd in teachers
+						option(value=teacher.name)= teacher.name
+		.form-group.row
+			label.col-md-5.col-form-label.font-weight-bold.text-center Subjects Taught (please check all that apply)
+
+		each sub,subInd in subjects
+			//.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right(for='subjects')!= sub.name
+			input(name='subjects', type='checkbox', value=sub.name)
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right
+			.col-md-3
+				input.btn.btn-raised(type='submit', value='Add Teacher or Update Teacher')

@@ -1,0 +1,31 @@
+extends layout
+
+
+block content
+
+	ul.nav.nav-tabs
+		li.nav-item
+			a.nav-link.active(href='/overview') Overview
+		li.nav-item
+			a.nav-link(href='/sessions') Sessions
+		li.nav-item
+			a.nav-link(href='/teachers') Teachers
+		li.nav-item
+			a.nav-link(href='/subjects') Subjects and Section
+		li.nav-item
+			a.nav-link(href='/questionnaires') Questionnaires
+	br
+
+	table.table.table-condensed.table-hover.ads-table
+		tr
+			th Active
+			th Sessions
+			th Teachers
+			th Subjects
+			th Questionnaires
+		tr
+			td= active
+			td= sessions
+			td= teachers
+			td= subjects
+			td= questionnaires
