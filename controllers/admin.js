@@ -291,11 +291,12 @@ function writeSpreadsheet(data, cb) {
 					})
 				}
 			})
-			wb.write('output/' + data[2] + '.xlsx', function (err, stats) {
+			temp_file_name = 'output/' + data[2] + '.xlsx'
+			wb.write(temp_file_name, function (err, stats) {
 				if (err) {
 					cb(false)
 				} else {
-					cb(true)
+					cb(temp_file_name)
 				}
 			})
 		} else {
@@ -368,11 +369,12 @@ function writeSpreadsheet(data, cb) {
 				remarks.forEach((rem, remInd) => {
 					emailRemarks.cell((remInd), 2).string("'" + rem + "'").style({ font: { italics: true } })
 				})
-				emailWB.write('output/' + teacher.name + '_' + data[2] + '.xlsx', function (err, stats) {
+				temp_file_name = 'output/' + teacher.name + '_' + data[2] + '.xlsx'
+				emailWB.write(temp_file_name, function (err, stats) {
 					if (err) {
 						cb(false)
 					} else {
-						cb(true)
+						cb(temp_file_name)
 					}
 				})
 			})
@@ -872,11 +874,15 @@ exports.downloadResults = (req, res) => {
 			let session = sessionsDb.get(parseInt(req.query.id))
 
 			prepareSession(session.cid, req.query, result => {
-				if (result)
+				if (result) {
+					console.log("Download this file.")
+					console.log(result)
 					req.flash('success', { msg: session.name + ' downloaded.' })
-				else
+				} else {
 					req.flash('errors', { msg: session.name + ' not downloaded.' })
-				res.redirect('/sessions')
+				}
+				//res.redirect('/sessions')
+				res.download(result)
 			})
 		}
 	} else {

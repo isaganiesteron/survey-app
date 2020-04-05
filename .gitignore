@@ -10,11 +10,8 @@ lib-cov
 
 pids
 logs
-results
 tmp
 output
-database
-db
 
 # Optional npm cache directory
 .npm

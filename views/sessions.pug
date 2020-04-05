@@ -1,8 +1,7 @@
 extends layout
 
-
 block content
-
+	br
 	ul.nav.nav-tabs
 		li.nav-item
 			a.nav-link(href='/overview') Overview
@@ -113,7 +112,7 @@ block content
 				th Responders
 				th Date
 				th View
-				th
+				th Download File
 			each sess in sessions
 				tr
 					td
@@ -139,7 +138,7 @@ block content
 					td
 						a(href='/session/results?id='+sess.cid) View Results
 					td
-						a(class='download_link' href='/session/download?id='+sess.cid) Reload File
+						a(class='download_link' href='/session/download?id='+sess.cid) Download
 
 		.form-group.row
 			label.col-md-2.col-form-label.font-weight-bold.text-right(for='merge_name') New Session Name
