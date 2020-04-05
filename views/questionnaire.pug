@@ -29,7 +29,20 @@ block content
 					td
 						a(href='/questionnaires?id='+question.cid) Edit
 
+
 	if single
+		p.lead Styling:
+		p Enclose any text in tags to change the styling.
+		p
+			span= "Text: <i>Italicized text</i> Result: "
+			i Italicized text
+		p 
+			span= "Text: <b>Bold text</b> Result: "
+			b Bold text
+		p  
+			span= "Text: <b><i>Bold and Italicized text</i></b> Result: "
+			b 
+				i Bold and Italicized text 
 		form(action="/questionnaire/update", method='POST')
 			input(type='hidden', name='_csrf', value=_csrf)
 			input(type='hidden', name='questionnaireId', value=single.cid)
@@ -38,7 +51,6 @@ block content
 				label.col-md-2.col-form-label.font-weight-bold(for='name') Questionnaire Name
 				//.col-md-10
 				input.form-control(type='text', name='name' value=single.name)
-				small.form-text.text-muted We'll never share your email with anyone else.
 
 			.form-group
 				label.col-md-2.col-form-label.font-weight-bold(for='instructions') Instructions
