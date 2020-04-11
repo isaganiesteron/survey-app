@@ -1,5 +1,5 @@
 const locallydb = require('locallydb')
-const xl = require('excel4node');
+const xl = require('excel4node')
 let db = new locallydb('././db')
 const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
@@ -11,13 +11,13 @@ function authentication(req) {
 }
 
 function removeDups(names) {
-	let unique = {};
+	let unique = {}
 	names.forEach(function (i) {
 		if (!unique[i]) {
-			unique[i] = true;
+			unique[i] = true
 		}
-	});
-	return Object.keys(unique);
+	})
+	return Object.keys(unique)
 }
 
 function writeSpreadsheet(data, cb) {
@@ -180,6 +180,8 @@ function writeSpreadsheet(data, cb) {
 			}
 		})
 		wb.write('output/' + data[2] + '.xlsx', function (err, stats) {
+			console.log("stats:")
+			console.log(stats)
 			if (err) {
 				cb(false)
 			} else {
@@ -203,11 +205,16 @@ function writeSpreadsheet(data, cb) {
 					orientation: 'landscape'
 				},
 				margins: {
+					left: 0.0,
+					right: 0.0,
+					top: 0.0,
+					bottom: 0.0
+				}/*margins: {
 					left: parseFloat(data[3].left),
 					right: parseFloat(data[3].right),
 					top: parseFloat(data[3].top),
 					bottom: parseFloat(data[3].bottom)
-				}
+				}*/
 			}
 			data[1].forEach(teacher => {
 				let curTeacher = wb.addWorksheet(teacher.name, options)
@@ -293,6 +300,8 @@ function writeSpreadsheet(data, cb) {
 			})
 			temp_file_name = 'output/' + data[2] + '.xlsx'
 			wb.write(temp_file_name, function (err, stats) {
+				console.log("temp_file_name:")
+				console.log(temp_file_name)
 				if (err) {
 					cb(false)
 				} else {
@@ -371,6 +380,8 @@ function writeSpreadsheet(data, cb) {
 				})
 				temp_file_name = 'output/' + teacher.name + '_' + data[2] + '.xlsx'
 				emailWB.write(temp_file_name, function (err, stats) {
+					console.log("temp_file_name:")
+					console.log(temp_file_name)
 					if (err) {
 						cb(false)
 					} else {
@@ -437,7 +448,7 @@ function prepareSession(id, options, cb) {
 				ansList.forEach(ans => {
 					if (ans.evaluator_0 == teach) {
 						teacherAnswers.push(ans)
-						if (teacherSubjectList.map(function (e) { return e.name; }).indexOf(ans.evaluator_1) < 0)
+						if (teacherSubjectList.map(function (e) { return e.name }).indexOf(ans.evaluator_1) < 0)
 							teacherSubjectList.push({ name: ans.evaluator_1, answers: [], sections: [] })
 
 					}
@@ -450,7 +461,7 @@ function prepareSession(id, options, cb) {
 					ansList.forEach(ans => {
 						if (ans.evaluator_0 == teach.name && ans.evaluator_1 == sub.name) {
 							sub.answers.push(ans)
-							if (sub.sections.map(function (e) { return e.name; }).indexOf(ans.evaluator_2) < 0)
+							if (sub.sections.map(function (e) { return e.name }).indexOf(ans.evaluator_2) < 0)
 								sub.sections.push({ name: ans.evaluator_2, answers: [] })
 						}
 					})
@@ -562,11 +573,11 @@ exports.index = (req, res) => {
 			teachers: allTeachers.length,
 			subjects: allSubjects.length,
 			questionnaires: allQuestions.length
-		});
+		})
 	} else {
-		res.redirect('/login');
+		res.redirect('/login')
 	}
-};
+}
 
 exports.sessions = (req, res) => {
 	if (authentication(req)) {
@@ -582,11 +593,11 @@ exports.sessions = (req, res) => {
 			title: 'sessions',
 			sessions: allSessions,
 			surveys: allQuestions
-		});
+		})
 	} else {
-		res.redirect('/login');
+		res.redirect('/login')
 	}
-};
+}
 exports.teachers = (req, res) => {
 	if (authentication(req)) {
 		let teachersDb = db.collection('teachers')
@@ -607,7 +618,7 @@ exports.teachers = (req, res) => {
 			title: 'teachers',
 			teachers: allTeachers,
 			subjects: allSubjects
-		});
+		})
 	}
 }
 
@@ -631,7 +642,7 @@ exports.subjects = (req, res) => {
 			title: 'subjects',
 			teachers: allTeachers,
 			subjects: allSubjects
-		});
+		})
 	}
 }
 
@@ -663,7 +674,7 @@ exports.updateQuestionnaire = (req, res) => {
 		let questionsList = []
 
 		for (let [key, value] of Object.entries(req.body)) {
-			console.log(`${key}: ${value}`);
+			console.log(`${key}: ${value}`)
 			if (key.split("_")[0] == 'evaluator')
 				evaluatorList.push(value)
 			else if (key.split("_")[0] == 'question')
@@ -736,16 +747,16 @@ exports.startSession = (req, res) => {
 		let existingSessions = sessionsDb.where({ active: true }).items
 		if (existingSessions < 1) {
 			if (sessionsDb.insert(newSession)) {
-				req.flash('success', { msg: 'Session ' + newSession.name + ' is now active.' });
-				res.redirect('/sessions');
+				req.flash('success', { msg: 'Session ' + newSession.name + ' is now active.' })
+				res.redirect('/sessions')
 			} else {
-				req.flash('errors', { msg: 'Something went wrong. Please try again.' });
-				res.redirect('/sessions');
+				req.flash('errors', { msg: 'Something went wrong. Please try again.' })
+				res.redirect('/sessions')
 			}
 
 		} else {
-			req.flash('errors', { msg: 'A session is currently active. End the current session before starting a new one.' });
-			res.redirect('/sessions');
+			req.flash('errors', { msg: 'A session is currently active. End the current session before starting a new one.' })
+			res.redirect('/sessions')
 		}
 
 	} else {
@@ -757,14 +768,14 @@ exports.endSession = (req, res) => {
 	if (authentication(req)) {
 		let sessionsDb = db.collection('sessions')
 		if (sessionsDb.update(parseInt(req.query.id), { active: false })) {
-			req.flash('success', { msg: 'Session is now inactive.' });
-			res.redirect('/sessions');
+			req.flash('success', { msg: 'Session is now inactive.' })
+			res.redirect('/sessions')
 		} else {
-			req.flash('errors', { msg: 'Something went wrong. Please try again.' });
-			res.redirect('/sessions');
+			req.flash('errors', { msg: 'Something went wrong. Please try again.' })
+			res.redirect('/sessions')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -774,19 +785,19 @@ exports.continueSession = (req, res) => {
 
 		let existingSession = sessionsDb.where({ active: true }).items
 		if (existingSession.length > 0) {
-			req.flash('errors', { msg: 'A session is currently active. End the current session before starting a new one.' });
-			res.redirect('/sessions');
+			req.flash('errors', { msg: 'A session is currently active. End the current session before starting a new one.' })
+			res.redirect('/sessions')
 		} else {
 			if (sessionsDb.update(parseInt(req.query.id), { active: true })) {
-				req.flash('success', { msg: 'Session is now active.' });
-				return res.redirect('/sessions');
+				req.flash('success', { msg: 'Session is now active.' })
+				return res.redirect('/sessions')
 			} else {
-				req.flash('errors', { msg: 'Something went wrong. Please try again.' });
-				res.redirect('/sessions');
+				req.flash('errors', { msg: 'Something went wrong. Please try again.' })
+				res.redirect('/sessions')
 			}
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -847,11 +858,11 @@ exports.displayResults = (req, res) => {
 					session: session.session,
 					summary: result,
 					filter: { single: single, teacher: teacher, subject: subject, section: section }
-				});
+				})
 			}
 		})
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -882,6 +893,7 @@ exports.downloadResults = (req, res) => {
 					req.flash('errors', { msg: session.name + ' not downloaded.' })
 				}
 				//res.redirect('/sessions')
+				console.log("Download: " + result)
 				res.download(result)
 			})
 		}
@@ -913,7 +925,7 @@ exports.removeResult = (req, res) => {
 			req.redirect('/')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -921,11 +933,11 @@ exports.deleteSession = (req, res) => {
 	if (authentication(req)) {
 		let sessionsDb = db.collection('sessions')
 		if (sessionsDb.remove(parseInt(req.query.id))) {
-			req.flash('success', { msg: 'Session is now deleted.' });
-			res.redirect('/sessions');
+			req.flash('success', { msg: 'Session is now deleted.' })
+			res.redirect('/sessions')
 		} else {
-			req.flash('errors', { msg: 'Something went wrong. Please try again.' });
-			res.redirect('/sessions');
+			req.flash('errors', { msg: 'Something went wrong. Please try again.' })
+			res.redirect('/sessions')
 		}
 
 	} else {
@@ -1027,8 +1039,8 @@ exports.addTeacher = (req, res) => {
 			//update a teacher
 			newSubjects = removeDups(existingTeacher[0].subjects.concat(subjects).sort())
 			if (teachersDb.update(existingTeacher[0].cid, { subjects: newSubjects })) {
-				req.flash('success', { msg: 'Subjects for ' + teacher.name + '  updated.' });
-				return res.redirect('/sessions');
+				req.flash('success', { msg: 'Subjects for ' + teacher.name + '  updated.' })
+				return res.redirect('/sessions')
 			} else {
 				req.flash('errors', { msg: 'Subjects not updated' })
 				res.redirect('/sessions')
@@ -1036,8 +1048,8 @@ exports.addTeacher = (req, res) => {
 		} else {
 			//add new teacher
 			if (teachersDb.insert(teacher)) {
-				req.flash('success', { msg: 'Teacher ' + teacher.name + ' is now added.' });
-				res.redirect('/sessions');
+				req.flash('success', { msg: 'Teacher ' + teacher.name + ' is now added.' })
+				res.redirect('/sessions')
 			} else {
 				rf
 				req.flash('errors', { msg: 'Teacher not added.' })
@@ -1068,7 +1080,7 @@ exports.removeTeacher = (req, res) => {
 			res.redirect('/sessions')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -1093,7 +1105,7 @@ exports.removeTeacherSubject = (req, res) => {
 			res.redirect('/sessions')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -1118,7 +1130,7 @@ exports.addSubject = (req, res) => {
 			}
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -1137,7 +1149,7 @@ exports.removeSubject = (req, res) => {
 			res.redirect('/subjects')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -1166,7 +1178,7 @@ exports.addSection = (req, res) => {
 			res.redirect('/subjects')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
 
@@ -1179,8 +1191,8 @@ exports.removeSection = (req, res) => {
 			sections = existingSubject.sections
 			sections.splice(sections.indexOf(req.query.name), 1)
 			if (subjectsDb.update(existingSubject.cid, { sections: sections })) {
-				req.flash('success', { msg: 'Section ' + req.query.name + ' is now removed from ' + existingSubject.name + ' subject.' });
-				return res.redirect('/subjects');
+				req.flash('success', { msg: 'Section ' + req.query.name + ' is now removed from ' + existingSubject.name + ' subject.' })
+				return res.redirect('/subjects')
 			} else {
 				req.flash('errors', { msg: 'Section is not removed.' })
 				res.redirect('/subjects')
@@ -1190,6 +1202,6 @@ exports.removeSection = (req, res) => {
 			res.redirect('/subjects')
 		}
 	} else {
-		res.redirect('/');
+		res.redirect('/')
 	}
 }
