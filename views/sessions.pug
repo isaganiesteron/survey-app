@@ -46,8 +46,8 @@ block content
 		p.lead End this session to create a new one. 
 			a(href='/session/end?id='+active_session.cid, style='font-size:12px') [END SESSION]
 
-
-	i.small.text-right **Download options are on the bottom of the page.
+	.col.small.text-right *Print: Fit scores on 1 page and remarks on another page. *Page setup is in landscape mode.
+	.col.small.text-right *Email: Will not be print friendly and will have 1 excel file per teacher. 
 	p.lead Session List
 	form(action="/session/merge", method='POST')
 		input(type='hidden', name='_csrf', value=_csrf)
@@ -61,7 +61,7 @@ block content
 				th Responders
 				th Date
 				th View
-				th Download File
+				th *Download
 			each sess in sessions
 				tr
 					td
@@ -87,7 +87,10 @@ block content
 					td
 						a(href='/session/results?id='+sess.cid) View Results
 					td
-						a(class='download_link' href='/session/download?id='+sess.cid) Download
+						a.small(href='/session/download?id='+sess.cid+'&mode=print') print
+						span= " | "
+						a.small(href='/session/download?id='+sess.cid+'&mode=email') email
+						//a(class='download_link' href='/session/download?id='+sess.cid) Download
 
 		.form-group.row
 			label.col-md-2.col-form-label.font-weight-bold.text-right(for='merge_name') New Session Name
@@ -108,26 +111,25 @@ block content
 		span.small [Download Options]
 
 	//div#download_options(style="display:none;border:1px solid black;padding:15px;")
-	div
+	//div#download_options
 		p.lead
 			u Download Options
 		i.small **Only Applies to Students Evaluation Form For Teachers
 
-		.form-group.row
+		//.form-group.row
 			label.col-md-2.col-form-label.font-weight-bold.text-right(for="print") Print Friendly
 			.col-md-1
 				input.download_option(id="options_print" type="radio" name="mode" checked="checked" value="print")
 			.col-md-9
 				p.small.text-left Fit scores on 1 page and remarks on another page. *Page setup is in landscape mode.
 
-		.form-group.row
+		//.form-group.row
 			label.col-md-2.col-form-label.font-weight-bold.text-right(for="email") Email Mode
 			.col-md-1
 				input.download_option(id="options_email" type="radio" name="mode" value="email")
 			.col-md-9
 				p.small.text-left Will not be print friendly and will have 1 excel file per teacher. 
-		br
-		
+
 		//
 			p.lead
 				u Margins

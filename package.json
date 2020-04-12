@@ -39,6 +39,7 @@
 		"express": "^4.17.1",
 		"express-flash": "^0.0.2",
 		"express-session": "^1.17.0",
+		"express-zip": "^3.0.0",
 		"jquery": "^3.4.1",
 		"locallydb": "0.0.9",
 		"lodash": "^4.17.15",

@@ -1,5 +1,8 @@
 const locallydb = require('locallydb')
 const xl = require('excel4node')
+const zip = require('express-zip')
+const async = require("async")
+
 let db = new locallydb('././db')
 const cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO', 'BP', 'BQ', 'BR', 'BS', 'BT', 'BU', 'BV', 'BW', 'BX', 'BY', 'BZ']
 
@@ -107,6 +110,7 @@ function writeSpreadsheet(data, cb) {
 	})
 
 	if (data[0].structured == 'false') {
+		console.log("Preschool Parents Evaluation Form")
 		/**
 		 *  Preschool Parents Evaluation Form (not structured)
 		 */
@@ -179,21 +183,20 @@ function writeSpreadsheet(data, cb) {
 				allanswers.cell(48, 3).string(Math.round(overal_average / data[1].length) + ": " + choices.find(({ value }) => value === (Math.round(overal_average / data[1].length)).toString()).text).style(style4)
 			}
 		})
-		wb.write('output/' + data[2] + '.xlsx', function (err, stats) {
-			console.log("stats:")
-			console.log(stats)
+		temp_file_name = 'output/' + data[2] + '.xlsx'
+		wb.write(temp_file_name, function (err, stats) {
 			if (err) {
 				cb(false)
 			} else {
-				cb(true)
+				cb(temp_file_name)
 			}
 		})
 	} else {
 		/**
 		 *  Students Evaluation Form For Teachers
 		 */
+		console.log("Students Evaluation Form For Teachers")
 		if (data[3].mode == "print") {
-
 			var options = {
 				/*printOptions: {
 					centerHorizontal: true,
@@ -300,8 +303,6 @@ function writeSpreadsheet(data, cb) {
 			})
 			temp_file_name = 'output/' + data[2] + '.xlsx'
 			wb.write(temp_file_name, function (err, stats) {
-				console.log("temp_file_name:")
-				console.log(temp_file_name)
 				if (err) {
 					cb(false)
 				} else {
@@ -309,6 +310,12 @@ function writeSpreadsheet(data, cb) {
 				}
 			})
 		} else {
+			console.log("email mode")
+			console.log("Teachers: " + data[1].length)
+			teacher_count = 1
+			files_list = []
+			file_name_list = []
+
 			data[1].forEach(teacher => {
 				let emailWB = new xl.Workbook()
 				let emailScores = emailWB.addWorksheet("Scores")
@@ -378,16 +385,23 @@ function writeSpreadsheet(data, cb) {
 				remarks.forEach((rem, remInd) => {
 					emailRemarks.cell((remInd), 2).string("'" + rem + "'").style({ font: { italics: true } })
 				})
-				temp_file_name = 'output/' + teacher.name + '_' + data[2] + '.xlsx'
-				emailWB.write(temp_file_name, function (err, stats) {
-					console.log("temp_file_name:")
-					console.log(temp_file_name)
-					if (err) {
-						cb(false)
-					} else {
-						cb(temp_file_name)
-					}
+				let file_name = 'output/' + teacher.name + '_' + data[2] + '.xlsx'
+				file_name = file_name.replace(/ /g, "_")
+				file_name_list.push({ path: file_name, name: file_name })
+				files_list.push((done) => {
+					emailWB.write(file_name, function (err, stats) {
+						if (err) {
+							done(null, "failed")
+						} else {
+							done(null, { path: file_name, name: file_name })
+						}
+					})
 				})
+			})
+			async.parallel(files_list, (err, result) => {
+				console.log("result")
+				console.log(result)
+				cb(result)
 			})
 		}
 	}
@@ -396,7 +410,6 @@ function writeSpreadsheet(data, cb) {
 function loadSpreadsheet(id) {
 	let sessionsDb = db.collection('sessions')
 	let session = sessionsDb.get(parseInt(id))
-	///session/download?id=1&mode=print&remarks=true&top=0.2&bottom=0.2&right=0.2&left=0.2
 	options = {
 		id: id.toString(),
 		mode: "email",
@@ -484,16 +497,18 @@ function prepareSession(id, options, cb) {
 			delete options.id
 			if (existingSession.questionnaire == 0) {
 				writeSpreadsheet([questions, overallAnsList, existingSession.name, options], (writeRes) => {
+					console.log("1")
 					if (cb)
 						cb(writeRes)
+
 				})
 			} else {
 				writeSpreadsheet([questions, ansList, existingSession.name, options], (writeRes) => {
+					console.log("2")
 					if (cb)
 						cb(writeRes)
 				})
 			}
-
 		} else {
 			if (cb)
 				cb({
@@ -869,6 +884,7 @@ exports.displayResults = (req, res) => {
 
 exports.downloadResults = (req, res) => {
 	if (authentication(req)) {
+		console.log(req.query)
 		req.query.create = true
 		if (req.query.id == 'all') {
 			let sessionsDb = db.collection('sessions')
@@ -886,15 +902,15 @@ exports.downloadResults = (req, res) => {
 
 			prepareSession(session.cid, req.query, result => {
 				if (result) {
-					console.log("Download this file.")
-					console.log(result)
-					req.flash('success', { msg: session.name + ' downloaded.' })
+					if (req.query.mode == "email")
+						res.zip(result)
+					else
+						res.download(result)
+
 				} else {
 					req.flash('errors', { msg: session.name + ' not downloaded.' })
+					res.redirect('/sessions')
 				}
-				//res.redirect('/sessions')
-				console.log("Download: " + result)
-				res.download(result)
 			})
 		}
 	} else {
