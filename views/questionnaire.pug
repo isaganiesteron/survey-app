@@ -21,6 +21,7 @@ block content
 			th Name
 			th Created At
 			th Edit Question Labels
+			th Delete Questionnaire
 			each question in questions
 				tr
 					td= question.cid
@@ -28,9 +29,40 @@ block content
 					td= question.$created
 					td
 						a(href='/questionnaires?id='+question.cid) Edit
+					td
+						a(href='/questionnaire/delete?id='+question.cid) Delete
 
+	form(action="/questionnaire/add", method='POST')
+		input(type='hidden', name='_csrf', value=_csrf)
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right(for='questionnaire_name') Questionnaire Name
+			.col-md-5
+				input.form-control(type='text', name='questionnaire_name')
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right
+			.col-md-3
+				input.btn.btn-raised(type='submit', value='Add New Questionnaire')
+
+	form(action="/questionnaire/addRaw", method='POST')
+		input(type='hidden', name='_csrf', value=_csrf)
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right(for='rawQuestionnaire') Raw Questionnaire Data (JSON format)
+			.col-md-5
+				textarea.form-control(name='rawQuestionnaire' rows="4")
+
+		.form-group.row
+			label.col-md-2.col-form-label.font-weight-bold.text-right
+			.col-md-3
+				input.btn.btn-raised(type='submit', value='Raw Questionnaire from raw data')
 
 	if single
+		- var editable = false
+		if single.cid > 1
+			- editable = true
+
 		p.lead Styling:
 		p Enclose any text in tags to change the styling.
 		p
@@ -43,45 +75,141 @@ block content
 			span= "Text: <b><i>Bold and Italicized text</i></b> Result: "
 			b 
 				i Bold and Italicized text 
+
+		a.btn.btn-raised(href='/questionnaire/view?id='+single.cid+"&index="+categoryInd) VIEW Questionnaire
 		form(action="/questionnaire/update", method='POST')
 			input(type='hidden', name='_csrf', value=_csrf)
 			input(type='hidden', name='questionnaireId', value=single.cid)
 
 			.form-group
-				label.col-md-2.col-form-label.font-weight-bold(for='name') Questionnaire Name
+				label.col-md-2.col-form-label.font-weight-bold(style='font-size:18px;' for='name') Questionnaire Name
 				//.col-md-10
 				input.form-control(type='text', name='name' value=single.name)
 
 			.form-group
-				label.col-md-2.col-form-label.font-weight-bold(for='instructions') Instructions
+				label.col-md-2.col-form-label.font-weight-bold(style='font-size:18px;' for='instructions') Instructions
 				//.col-md-10
 				input.form-control(type='text', name='instructions' value=single.instructions)
 
 			.form-group
-				label.col-md-2.col-form-label.font-weight-bold(for='opening') Opening
+				label.col-md-2.col-form-label.font-weight-bold(style='font-size:18px;' for='opening') Opening
 				//.col-md-10
 				input.form-control(type='text', name='opening' value=single.opening)
 
 			.form-group
-				label.col-md-2.col-form-label.font-weight-bold(for='closing') Closing
+				label.col-md-2.col-form-label.font-weight-bold(style='font-size:18px;' for='closing') Closing
 				//.col-md-10
 				input.form-control(type='text', name='closing' value=single.closing)
 
+			if single.evaluator.length < 1 && editable
+				a(href='/questionnaire/add/evaluator?id='+single.cid+"&index=-1") Add First Item
+
 			each evaluator, evaluatorInd in single.evaluator
 				.form-group
-					label.col-md-2.col-form-label.font-weight-bold(for='evaluator_'+evaluatorInd)= "evaluator_" + evaluatorInd
-					//.col-md-10
+					label.col-md-2.col-form-label.font-weight-bold(for='evaluator_'+evaluatorInd)
+						b(style='font-size:18px;')= "evaluator_" + evaluatorInd+"  "
+						if editable
+							a(style='font-size:10px;' href='/questionnaire/remove/evaluator?id='+single.cid+"&index="+evaluatorInd) Remove
 					input.form-control(type='text', name='evaluator_'+evaluatorInd value=evaluator.question)
+					p(style="font-size:12px;padding-top:2px;") Question
+				if editable
+					.form-group
+						select.custom-select(name='evaluator_'+evaluatorInd+"_type")
+							if evaluator.type == 'input'
+								option(selected) input
+								option choice
+							else
+								option input
+								option(selected) choice
+						p(style="font-size:12px;padding-top:2px;") Type
 
-			each category, categoryInd in single.questions
-				each question, questionInd in category.questions
+					input.form-control(type='text', name='evaluator_'+evaluatorInd+"_choices" value=evaluator.choices)
+						
+					if evaluator.type == 'input'
+						p(style="font-size:12px;padding-top:2px;") **THIS IS AN 'INPUT' TYPE SO IT SHOULD BE A STRING
+					else
+						p(style="font-size:12px;padding-top:2px;") **THIS IS A 'CHOICE' TYPE SO IT SHOULD BE AN ARRAY OF OBJECTS
 
 					.form-group
+						select.custom-select(name='evaluator_'+evaluatorInd+"_optional")
+							if evaluator.optional
+								option(value="false") Required
+								option(value="true" selected) Optional
+							else
+								option(value="false" selected) Required
+								option(value="true") Optional
+						p(style="font-size:12px;padding-top:2px;") Required
+				
+					a(style='font-size:12px;padding-left:10px;' href='/questionnaire/add/evaluator?id='+single.cid+"&index="+evaluatorInd) + Add Item
+
+			if single.questions.length < 1 && editable
+				p
+					a(href='/questionnaire/add/category?id='+single.cid+"&index=-1") Add First Category
+
+			each category, categoryInd in single.questions
+				p.lead= category.category
+				input.form-control(type='text', name='category_'+categoryInd value=category.category)
+				if editable
+					a(style='font-size:10px;' href='/questionnaire/remove/category?id='+single.cid+"&index="+categoryInd) Remove
+
+					.form-group
+						select.custom-select(name='category_'+categoryInd+"_hide")
+							if category.hide_category
+								option(value="true" selected) Hidden
+								option(value="false") Not Hidded
+							else
+								option(value="true") Hidden
+								option(value="false" selected) Not Hidded
+					p(style="font-size:12px;padding-top:2px;") Hide Question
+
+				if category.questions.length < 1 && editable
+					p
+						a(href='/questionnaire/add/question?id='+single.cid+"&index="+categoryInd + "_-1") Add First Question
+				each question, questionInd in category.questions
+					.form-group
 						label.col-md-2.col-form-label.font-weight-bold(for="question_" + categoryInd + "_"+questionInd)= categoryInd + "_" + questionInd
+							if editable
+								a(style='font-size:10px;' href='/questionnaire/remove/question?id='+single.cid+"&index="+ categoryInd + "_" + questionInd) Remove
 						//.col-md-10
-						if question.type
 						input.form-control(type='text', name="question_" + categoryInd + "_" + questionInd value=question.question)
-						small.form-text.text-muted= "Type: "+question.type
+					
+					if editable
+						input.form-control(type='text', name="question_" + categoryInd + "_" + questionInd+"_heading" value=question.heading)
+						p(style="font-size:12px;padding-top:2px;") Heading
+						input.form-control(type='text', name="question_" + categoryInd + "_" + questionInd+"_item" value=question.item_label)
+						p(style="font-size:12px;padding-top:2px;") Label
+						//input.form-control(type='text', name="question_" + categoryInd + "_" + questionInd+"_type" value=question.type)
+						.form-group
+							select.custom-select(name="question_" + categoryInd + "_" + questionInd+"_type")
+								if question.type == 'input'
+									option(selected) input
+									option choice
+								else
+									option input
+									option(selected) choice
+						p(style="font-size:12px;padding-top:2px;") Type
+						.form-group
+							select.custom-select(name="question_" + categoryInd + "_" + questionInd+"_hide")
+								if question.hide_question == 'true'
+									option(value="true" selected) Hidden
+									option(value="false") Not Hidded
+								else
+									option(value="true") Hidden
+									option(value="false" selected) Not Hidded
+						p(style="font-size:12px;padding-top:2px;") Hide Question
+
+						
+						input.form-control(type='text', name="question_" + categoryInd + "_" + questionInd+"_choices" value=question.choices)
+						if question.type == 'input'
+							p(style="font-size:12px;padding-top:2px;") **THIS IS AN 'INPUT' TYPE SO IT SHOULD BE A STRING
+						else
+							p(style="font-size:12px;padding-top:2px;") **THIS IS A 'CHOICE' TYPE SO IT SHOULD BE AN ARRAY OF OBJECTS
+						
+						p
+							a(style='font-size:12px;padding-left:10px;' href='/questionnaire/add/question?id='+single.cid+"&index="+categoryInd + "_" + questionInd) + Add Question
+				
+				if editable
+					a(style='font-size:12px;padding-left:10px;' href='/questionnaire/add/category?id='+single.cid+"&index="+categoryInd) + Add Category
 
 			.form-group
 				label.col-md-2.col-form-label.font-weight-bold

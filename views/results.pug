@@ -183,9 +183,10 @@ block content
 								each cat, catInd in questions.questions
 									each quest, questInd in cat.questions
 										td= ans['q_'+catInd+'_'+questInd]
-
+										
 	else
 		- var response_average = {}
+		- var total_response_average = 0
 		- var total_questions = 0
 		- var choices = []
 		table.table.table-condensed.table-hover.table-responsive
@@ -196,7 +197,7 @@ block content
 					if res_name == " "
 						- res_name = "Anonymous"
 						
-					th!= res_name
+					th!= ans._id+": "+res_name
 						button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_single2_"+ans._id)= '[DELETE THIS RESPONSE]'
 						div( class="modal fade", id="confirm_delete_single2_"+ans._id, role="dialog")
 							div( class="modal-dialog")
@@ -232,10 +233,17 @@ block content
 								each ans in session.answers
 									td
 										p= ans['q_'+catInd+'_'+questInd]
-
 				tr
-					td(style='text-align:right;font-weight:bold;') Overall Average:
+					td(style='text-align:right;font-weight:bold;') Average:
 					
 					each average in response_average
+						- total_response_average += (average/total_questions)
 						td= (average/total_questions) 
 							p= choices.find( ({ value }) => value === (Math.round(average/total_questions)).toString() ).text
+			tr
+				td(style='text-align:right;font-weight:bold;')= "Average of "+session.answers.length+" responses:"
+				td= (total_response_average/session.answers.length)
+					p= choices.find( ({ value }) => value === (Math.round(total_response_average/session.answers.length)).toString() ).text
+				each row, rowInd in session.answers
+					if rowInd > 0
+						td

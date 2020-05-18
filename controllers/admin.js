@@ -195,7 +195,6 @@ function writeSpreadsheet(data, cb) {
 		/**
 		 *  Students Evaluation Form For Teachers
 		 */
-		console.log("Students Evaluation Form For Teachers")
 		if (data[3].mode == "print") {
 			var options = {
 				/*printOptions: {
@@ -230,7 +229,7 @@ function writeSpreadsheet(data, cb) {
 					curTeacher.cell(27, 2).string((score.total / score.count).toFixed(2)).style(style4).style({ font: { size: 9 } })	//dont average this
 				})
 				curTeacher.cell(28, 2).string("Questions").style({ alignment: { horizontal: 'center' } })
-				for (a = 2;a < 30;a++) {
+				for (a = 2; a < 30; a++) {
 					curTeacher.row(a).setHeight(12)
 				}
 				let counter = 0
@@ -261,7 +260,7 @@ function writeSpreadsheet(data, cb) {
 						curTeacher.column((columnCount + 2)).setWidth(10)
 						questionsTotal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 						sec.answers.forEach(secAnswers => {
-							for (i = 0;i < 20;i++) {
+							for (i = 0; i < 20; i++) {
 								questionsTotal[i] += secAnswers['q_0_' + i] * 1
 							}
 							if (secAnswers['q_0_20'] != '') {
@@ -269,7 +268,7 @@ function writeSpreadsheet(data, cb) {
 							}
 						})
 						curSecTotal = 0
-						for (i = 0;i < 20;i++) {
+						for (i = 0; i < 20; i++) {
 							curSecTotal += questionsTotal[i] * 1
 							curAve = questionsTotal[i] / sec.answers.length
 							curTeacher.cell((4 + i), (columnCount + columnIncrement)).number(parseFloat(curAve.toFixed(2))).style({ font: { size: 9 }, alignment: { horizontal: 'center' } })
@@ -310,8 +309,6 @@ function writeSpreadsheet(data, cb) {
 				}
 			})
 		} else {
-			console.log("email mode")
-			console.log("Teachers: " + data[1].length)
 			teacher_count = 1
 			files_list = []
 			file_name_list = []
@@ -353,7 +350,7 @@ function writeSpreadsheet(data, cb) {
 						emailScores.column((columnCount + 3)).setWidth(13)
 						questionsTotal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 						sec.answers.forEach(secAnswers => {
-							for (i = 0;i < 20;i++) {
+							for (i = 0; i < 20; i++) {
 								questionsTotal[i] += secAnswers['q_0_' + i] * 1
 							}
 							if (secAnswers['q_0_20'] != '') {
@@ -361,7 +358,7 @@ function writeSpreadsheet(data, cb) {
 							}
 						})
 						curSecTotal = 0
-						for (i = 0;i < 20;i++) {
+						for (i = 0; i < 20; i++) {
 							curSecTotal += questionsTotal[i] * 1
 							curAve = questionsTotal[i] / sec.answers.length
 							emailScores.cell((4 + i), (columnCount + columnIncrement)).number(curAve).style(style6)
@@ -399,8 +396,6 @@ function writeSpreadsheet(data, cb) {
 				})
 			})
 			async.parallel(files_list, (err, result) => {
-				console.log("result")
-				console.log(result)
 				cb(result)
 			})
 		}
@@ -497,14 +492,12 @@ function prepareSession(id, options, cb) {
 			delete options.id
 			if (existingSession.questionnaire == 0) {
 				writeSpreadsheet([questions, overallAnsList, existingSession.name, options], (writeRes) => {
-					console.log("1")
 					if (cb)
 						cb(writeRes)
 
 				})
 			} else {
 				writeSpreadsheet([questions, ansList, existingSession.name, options], (writeRes) => {
-					console.log("2")
 					if (cb)
 						cb(writeRes)
 				})
@@ -669,12 +662,106 @@ exports.questionnaires = (req, res) => {
 		if (req.query.id)
 			single = allQuestions.find(({ cid }) => cid === parseInt(req.query.id))
 
+		console.log("")
+		console.log("")
+		console.log(single)
+		console.log("")
+		console.log("")
+
 		res.render('questionnaire', {
 			title: 'questionnaires',
 			questions: allQuestions,
 			single: single
 		})
 
+	} else {
+		res.redirect('/')
+	}
+}
+
+exports.createRawQuestionnaire = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let rawData = req.body.rawQuestionnaire
+		rawData = rawData.replace(/(\r\n|\n|\r)/gm, "");
+		rawQuestionnaire = JSON.parse(rawData)
+		if (questionsDb.insert(rawQuestionnaire)) {
+			req.flash('success', { msg: 'Questionnaire ' + rawQuestionnaire.name + ' is now added.' })
+			res.redirect('/questionnaires')
+		} else {
+			req.flash('errors', { msg: 'Something went wrong. Please try again.' })
+			res.redirect('/questionnaires')
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+exports.createQuestionnaire = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let existingQuestionnaire = questionsDb.where({ name: req.body.questionnaire_name }).items
+		if (existingQuestionnaire.length > 0) {
+			//questionnaire with that name exists
+			req.flash('errors', { msg: 'Name already exists. Choose another name.' })
+			res.redirect('/sessions')
+		} else {
+			//create new questionnaire
+			questionnaire = {
+				name: req.body.questionnaire_name,
+				structured: 'false',
+				opening: "Opening",
+				closing: "Closing",
+				instructions: "Instructions",
+				evaluator: [],
+				questions: []
+			}
+
+			if (questionsDb.insert(questionnaire)) {
+				req.flash('success', { msg: 'Questionnaire ' + questionnaire.name + ' is now added.' })
+				res.redirect('/questionnaires')
+			} else {
+				req.flash('errors', { msg: 'Something went wrong. Please try again.' })
+				res.redirect('/questionnaires')
+
+			}
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+
+exports.displayQuestionnaire = (req, res) => {
+	let questionsDb = db.collection('questions')
+	let existingQuestions = questionsDb.get(parseInt(req.query.id))
+	if (existingQuestions) {
+		res.render('displayquestionnaire', {
+			title: 'View Questionnaire',
+			survey: existingQuestions
+		});
+	}
+
+}
+
+exports.deleteQuestionnaire = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let existingQuestion = questionsDb.get(parseInt(req.query.id))
+
+		if (existingQuestion) {
+			if (questionsDb.remove(existingQuestion.cid)) {
+				req.flash('success', { msg: 'Questionnaire ' + existingQuestion.name + ' removed.' })
+				res.redirect('/questionnaires')
+			} else {
+				req.flash('errors', { msg: 'Questionnaire not removed.' })
+				res.redirect('/questionnaires')
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires')
+		}
+	} else {
+		res.redirect('/')
 	}
 }
 
@@ -686,31 +773,122 @@ exports.updateQuestionnaire = (req, res) => {
 		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
 
 		let evaluatorList = []
+		let categoryList = []
 		let questionsList = []
 
+		let tempEval = { question: "", type: "", optional: 'true', choices: [] }
+		let tempCat = { category: "", hide_category: 'false', questions: [] }
+		let tempQuest = { heading: "", item_label: "", type: "", hide_question: 'false', question: "", choices: [] }
+
+		let editable = true
+		if (existingQuestion.cid == 0 || existingQuestion.cid == 1)
+			editable = false
+
 		for (let [key, value] of Object.entries(req.body)) {
-			console.log(`${key}: ${value}`)
-			if (key.split("_")[0] == 'evaluator')
-				evaluatorList.push(value)
-			else if (key.split("_")[0] == 'question')
-				questionsList.push(value)
+			let currentKey = key.split("_")[0]
+			if (currentKey == 'evaluator') {
+				console.log("key: " + key + " Value: " + value)
+				if (editable) {
+					let sameItem = key.split("_")[2] || false
+					if (!sameItem) {
+						tempEval.question = value
+					} else {
+						let keyArr = key.split("_")
+						let subKey = keyArr[keyArr.length - 1]
+						if (subKey == "type") {
+							tempEval.type = value
+						} else if (subKey == "optional") {
+							tempEval.optional = value
+						} else if (subKey == "choices") {
+							//**important: we assume that 'optional' is the last item in evaluator, this may change to 'choices' later on */
+							if (tempEval.type == 'input')
+								tempEval.choices = value
+							else
+								tempEval.choices = JSON.parse(value)
+							evaluatorList.push(tempEval)
+							tempEval = { question: "", type: "", optional: 'true', choices: [] }
+						}
+					}
+				} else {
+					evaluatorList.push(value)
+				}
+			} else if (currentKey == 'question') {
+				if (editable) {
+					let curQuest = key.split("_")
+					let curQuestKey = curQuest[3] || false
+					if (!curQuestKey) {
+						tempQuest.question = value
+					} else {
+						switch (curQuestKey) {
+							case "heading":
+								tempQuest.heading = value
+								break
+							case "item":
+								tempQuest.item_label = value
+								break
+							case "type":
+								tempQuest.type = value
+								break
+							case "hide":
+								tempQuest.hide_question = value
+								break
+							case "choices":
+								if (tempQuest.type == 'input')
+									tempQuest.choices = value
+								else
+									tempQuest.choices = JSON.parse(value)
+								questionsList.push(tempQuest)
+								tempQuest = { heading: "", item_label: "", type: "", hide_question: 'false', question: "", choices: [] }
+								break
+						}
+					}
+				} else {
+					questionsList.push(value)
+				}
+			} else if (currentKey == 'category') {
+				let curCat = key.split("_")
+				let curCatKey = curCat[2] || false
+				if (!curCatKey) {
+					tempCat.category = value
+				} else {
+					if (curCatKey == "hide") {
+						tempCat.hide_category = value
+						categoryList.push(tempCat)
+						tempCat = { category: "", hide_category: 'false', questions: [] }
+					}
+				}
+			}
 		}
-
-		questionCount = 0
-
 		existingQuestion.name = req.body.name
 		existingQuestion.instructions = req.body.instructions
 		existingQuestion.opening = req.body.opening
 		existingQuestion.closing = req.body.closing
 
 		existingQuestion.evaluator.forEach((curr, currInd) => {
-			curr.question = evaluatorList[currInd]
+			if (editable) {
+				curr.question = evaluatorList[currInd].question
+				curr.type = evaluatorList[currInd].type
+				curr.optional = evaluatorList[currInd].optional
+				curr.choices = evaluatorList[currInd].choices
+			} else {
+				curr.question = evaluatorList[currInd]
+			}
 		})
 
-		existingQuestion.questions.forEach(category => {
-			category.questions.forEach(question => {
-				question.question = questionsList[questionCount]
-				questionCount++
+		existingQuestion.questions.forEach((category, categoryCount) => {
+			category.category = categoryList[categoryCount].category
+			if (editable)
+				category.hide_category = categoryList[categoryCount].hide_category
+
+			category.questions.forEach((question, questionCount) => {
+				//your only editing the questions array here, I think
+				question.question = questionsList[questionCount].question
+				if (editable) {
+					question.heading = questionsList[questionCount].heading
+					question.item_label = questionsList[questionCount].item_label
+					question.type = questionsList[questionCount].type
+					question.hide_question = questionsList[questionCount].hide_question
+				}
 			})
 		})
 
@@ -739,7 +917,232 @@ exports.updateQuestionnaire = (req, res) => {
 				single: single
 			})
 		}
+	} else {
+		res.redirect('/')
+	}
+}
 
+exports.questionnaireAddEvaluator = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let questionnaireId = parseInt(req.query.id)
+		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
+
+		let newEvalutorItem = {
+			question: "evaluator_" + (parseInt(req.query.index) + 1),
+			type: "input",
+			optional: true,
+			choices: []
+		}
+
+		if (parseInt(req.query.id) == 0) {
+			existingQuestion.evaluator.push(newEvalutorItem)
+		} else {
+			let newIndex = parseInt(req.query.index) + 1
+			existingQuestion.evaluator.splice(newIndex, 0, newEvalutorItem)
+		}
+
+		questionCount = 0
+
+		console.log(existingQuestion.evaluator)
+		console.log(existingQuestion.questions)
+
+		if (existingQuestion) {
+			if (questionsDb.update(questionnaireId, existingQuestion)) {
+				req.flash('success', { msg: 'Item Added.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			} else {
+				req.flash('errors', { msg: 'Item Not Added.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires?id=' + req.query.id)
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+
+exports.questionnaireRemoveEvaluator = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let questionnaireId = parseInt(req.query.id)
+		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
+
+		existingQuestion.evaluator = existingQuestion.evaluator.filter((x, ind) => {
+			return (ind != parseInt(req.query.index))
+		})
+
+		questionCount = 0
+
+		console.log(existingQuestion.evaluator)
+		console.log(existingQuestion.questions)
+
+		if (existingQuestion) {
+			if (questionsDb.update(questionnaireId, existingQuestion)) {
+				req.flash('success', { msg: 'Item Removed.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			} else {
+				req.flash('errors', { msg: 'Item not updated.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires?id=' + req.query.id)
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+exports.questionnaireAddCategory = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let questionnaireId = parseInt(req.query.id)
+		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
+
+		let newCategoryItem = {
+			category: req.query.index + " New Category",
+			hide_category: 'false',
+			questions: []
+		}
+
+		questionCount = 0
+
+		console.log(existingQuestion.evaluator)
+		console.log(existingQuestion.questions)
+
+		if (parseInt(req.query.id) == 0) {
+			existingQuestion.questions.push(newCategoryItem)
+		} else {
+			let newIndex = parseInt(req.query.index) + 1
+			existingQuestion.questions.splice(newIndex, 0, newCategoryItem)
+		}
+
+		if (existingQuestion) {
+			if (questionsDb.update(questionnaireId, existingQuestion)) {
+				req.flash('success', { msg: 'Item Added.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			} else {
+				req.flash('errors', { msg: 'Item Not Added.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires?id=' + req.query.id)
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+exports.questionnaireRemoveCategory = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let questionnaireId = parseInt(req.query.id)
+		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
+
+		existingQuestion.questions = existingQuestion.questions.filter((x, ind) => {
+			return (ind != parseInt(req.query.index))
+		})
+
+		questionCount = 0
+
+		console.log(existingQuestion.evaluator)
+		console.log(existingQuestion.questions)
+
+		if (existingQuestion) {
+			if (questionsDb.update(questionnaireId, existingQuestion)) {
+				req.flash('success', { msg: 'Category Removed.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			} else {
+				req.flash('errors', { msg: 'Category not removed.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires?id=' + req.query.id)
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+exports.questionnaireAddQuestion = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let questionnaireId = parseInt(req.query.id)
+		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
+
+		let category_ind = parseInt(req.query.index.split("_")[0])
+		let question_ind = parseInt(req.query.index.split("_")[1])
+
+		let newQuestionItem = {
+			heading: "",
+			item_label: "number",	//none, item, number
+			type: "input",	//input, choice
+			hide_question: 'false',
+			question: "<b><i>" + question_ind + " New Question.</i></b>",
+			choices: []
+		}
+		questionCount = 0
+
+		if (question_ind == 'null') {
+			existingQuestion.questions[category_ind].questions.push(newQuestionItem)
+		} else {
+			let newIndex = question_ind + 1
+			existingQuestion.questions[category_ind].questions.splice(newIndex, 0, newQuestionItem)
+		}
+
+		if (existingQuestion) {
+			if (questionsDb.update(questionnaireId, existingQuestion)) {
+				req.flash('success', { msg: 'Question Added.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			} else {
+				req.flash('errors', { msg: 'Question Not Added.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires?id=' + req.query.id)
+		}
+	} else {
+		res.redirect('/')
+	}
+}
+exports.questionnaireRemoveQuestion = (req, res) => {
+	if (authentication(req)) {
+		let questionsDb = db.collection('questions')
+		let allQuestions = questionsDb.items
+		let questionnaireId = parseInt(req.query.id)
+		let existingQuestion = allQuestions.find(({ cid }) => cid === questionnaireId)
+
+		let category_ind = parseInt(req.query.index.split("_")[0])
+		let question_ind = parseInt(req.query.index.split("_")[1])
+
+		existingQuestion.questions[category_ind].questions = existingQuestion.questions[category_ind].questions.filter((x, ind) => {
+			return (ind != question_ind)
+		})
+
+		questionCount = 0
+
+		if (existingQuestion) {
+			if (questionsDb.update(questionnaireId, existingQuestion)) {
+				req.flash('success', { msg: 'Question Removed.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			} else {
+				req.flash('errors', { msg: 'Question not removed.' })
+				res.redirect('/questionnaires?id=' + req.query.id)
+			}
+		} else {
+			req.flash('errors', { msg: 'Questionnaire not found.' })
+			res.redirect('/questionnaires?id=' + req.query.id)
+		}
+	} else {
+		res.redirect('/')
 	}
 }
 
