@@ -22,7 +22,6 @@ for (var k in interfaces) {
 	}
 }
 url = addresses[0]
-
 /**
  * Controllers (route handlers).
  */
@@ -102,7 +101,6 @@ app.get('/sessions', adminController.sessions)
 app.get('/teachers', adminController.teachers)
 app.get('/subjects', adminController.subjects)
 app.get('/questionnaires', adminController.questionnaires)
-app.post('/questionnaire/update', adminController.updateQuestionnaire)
 
 /**
  * Sessions
@@ -132,6 +130,22 @@ app.post('/section/add', adminController.addSection)
 app.get('/section/remove', adminController.removeSection)
 
 /**
+ * Questionnaire
+ */
+app.post('/questionnaire/update', adminController.updateQuestionnaire)
+app.post('/questionnaire/addRaw', adminController.createRawQuestionnaire)
+app.post('/questionnaire/add', adminController.createQuestionnaire)
+app.get('/questionnaire/delete', adminController.deleteQuestionnaire)
+app.get('/questionnaire/add/evaluator', adminController.questionnaireAddEvaluator)
+app.get('/questionnaire/remove/evaluator', adminController.questionnaireRemoveEvaluator)
+app.get('/questionnaire/add/question', adminController.questionnaireAddQuestion)
+app.get('/questionnaire/remove/question', adminController.questionnaireRemoveQuestion)
+app.get('/questionnaire/add/category', adminController.questionnaireAddCategory)
+app.get('/questionnaire/remove/category', adminController.questionnaireRemoveCategory)
+app.get('/questionnaire/view', adminController.displayQuestionnaire)
+
+
+/**
  * Users
  */
 app.get('/login', userController.getLogin)
@@ -155,8 +169,12 @@ app.use((err, req, res, next) => {
  * Start Express server.
  */
 
+
+//url = "localhost"
+console.log(url)
+
 //let listener = app.listen(0, url, () => {
-portNumber = 80
+portNumber = 8000
 tcpPortUsed.check(3000, 'localhost').then(function (inUse) {
 	if (inUse)
 		portNumber = 0
