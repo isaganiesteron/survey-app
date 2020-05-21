@@ -185,65 +185,114 @@ block content
 										td= ans['q_'+catInd+'_'+questInd]
 										
 	else
-		- var response_average = {}
-		- var total_response_average = 0
-		- var total_questions = 0
-		- var choices = []
-		table.table.table-condensed.table-hover.table-responsive
-			tr
-				th Section and Question
-				each ans in session.answers
-					- res_name = ans.evaluator_0
-					if res_name == " "
-						- res_name = "Anonymous"
-						
-					th!= ans._id+": "+res_name
-						button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_single2_"+ans._id)= '[DELETE THIS RESPONSE]'
-						div( class="modal fade", id="confirm_delete_single2_"+ans._id, role="dialog")
-							div( class="modal-dialog")
-								div( class="modal-content")
-									div( class="modal-header")
-										h4( class="modal-title") Are you sure?
-										button( type="button", class="close", data-dismiss="modal") X
-									div( class="modal-body")
-										p= 'Are you sure you want to remove the response of ' + ans.evaluator_0 + ' (id: '+ans._id+')'
-									div( class="modal-footer")
-										button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
-										button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/results/remove?id='+session.cid+'&result='+ans._id) Yes, Delete this response
-					
-					- response_average[ans._id] = 0
+		// MODULAR LEARNING EVALUATION FORM FOR STUDENTS/PARENTS
+		if(questions.cid == 4 || questions.cid == 3)
+			
+			//h1= JSON.stringify(summary)
 
-				each cat, catInd in questions.questions
-					each quest, questInd in cat.questions
-						if quest.type == 'choice'
-							- total_questions++
-							tr
-								td
-									p= (catInd+1)+'.'+(questInd+1)+' '+quest.question
-								each ans in session.answers
-									- choices = quest.choices
-									td
-										p= ans['q_'+catInd+'_'+questInd]+" = "+quest.choices.find( ({ value }) => value === ans['q_'+catInd+'_'+questInd] ).text
-									
-									- response_average[ans._id] += (ans['q_'+catInd+'_'+questInd]*1)
-						else if quest.type == 'input'
-							tr
-								td
-									p!= (catInd+1)+'.'+(questInd+1)+' '+quest.question
-								each ans in session.answers
-									td
-										p= ans['q_'+catInd+'_'+questInd]
+			//- each section in Object.entries(summary)
+			//- 	h1= section[0]
+
+			//Sections on top
+			table.table.table-condensed.table-hover.table-responsive
 				tr
-					td(style='text-align:right;font-weight:bold;') Average:
-					
-					each average in response_average
-						- total_response_average += (average/total_questions)
-						td= (average/total_questions) 
-							p= choices.find( ({ value }) => value === (Math.round(average/total_questions)).toString() ).text
-			tr
-				td(style='text-align:right;font-weight:bold;')= "Average of "+session.answers.length+" responses:"
-				td= (total_response_average/session.answers.length)
-					p= choices.find( ({ value }) => value === (Math.round(total_response_average/session.answers.length)).toString() ).text
-				each row, rowInd in session.answers
-					if rowInd > 0
-						td
+					th Question
+					each cat, catInd in questions.questions
+						each quest, questInd in cat.questions
+							th= quest.question
+
+				each section in Object.entries(summary)
+					tr
+						th= section[0]
+							each cat, catInd in questions.questions
+								each quest, questInd in cat.questions
+									th= section[1].averages['Per Question']["q_"+catInd+"_"+questInd]
+
+
+
+			//Questions on top
+			//- table.table.table-condensed.table-hover.table-responsive
+			//- 	tr
+			//- 		th Sections
+			//- 		each cat, catInd in questions.questions
+			//- 			each quest, questInd in cat.questions
+			//- 				th= quest.question
+			//- 	each section in Object.entries(summary)
+			//- 		tr
+			//- 			th= section[0]
+
+			//- 			each cat, catInd in questions.questions
+			//- 				each quest, questInd in cat.questions
+			//- 					th= section[1].averages['Per Question']["q_"+catInd+"_"+questInd]
+
+
+
+
+		else
+			- var response_average = {}
+			- var total_response_average = 0
+			- var total_questions = 0
+			- var choices = []
+			
+			table.table.table-condensed.table-hover.table-responsive
+				tr
+					th Section and Question
+					each ans in session.answers
+						- res_name = ans.evaluator_0
+						if res_name == " "
+							- res_name = "Anonymous"
+							
+						th!= ans._id+": "+res_name
+							button(type="button" style='font-size:12px;' class="btn btn-link" data-toggle="modal", data-target="#confirm_delete_single2_"+ans._id)= '[DELETE THIS RESPONSE]'
+							div( class="modal fade", id="confirm_delete_single2_"+ans._id, role="dialog")
+								div( class="modal-dialog")
+									div( class="modal-content")
+										div( class="modal-header")
+											h4( class="modal-title") Are you sure?
+											button( type="button", class="close", data-dismiss="modal") X
+										div( class="modal-body")
+											p= 'Are you sure you want to remove the response of ' + ans.evaluator_0 + ' (id: '+ans._id+')'
+										div( class="modal-footer")
+											button(type="button" class="btn btn-secondary" data-dismiss="modal") No.
+											button(type="button" class="btn btn-primary confirm_yes" data-dismiss="modal" data-href='/session/results/remove?id='+session.cid+'&result='+ans._id) Yes, Delete this response
+						
+						- response_average[ans._id] = 0
+
+					each cat, catInd in questions.questions
+						each quest, questInd in cat.questions
+							if quest.type == 'choice'
+								- total_questions++
+								tr
+									td
+										p= (catInd+1)+'.'+(questInd+1)+' '+quest.question
+									each ans in session.answers
+										- choices = quest.choices
+										td
+											p= ans['q_'+catInd+'_'+questInd]+" = "+quest.choices.find( ({ value }) => value === ans['q_'+catInd+'_'+questInd] ).text
+										
+										- response_average[ans._id] += (ans['q_'+catInd+'_'+questInd]*1)
+							else if quest.type == 'input'
+								tr
+									td
+										p!= (catInd+1)+'.'+(questInd+1)+' '+quest.question
+									each ans in session.answers
+										td
+											p= ans['q_'+catInd+'_'+questInd]
+					tr
+						td(style='text-align:right;font-weight:bold;') Average:
+						
+						each average in response_average
+							- total_response_average += (average/total_questions)
+							td= (average/total_questions) 
+								- var summary = choices.find( ({ value }) => {value === (Math.round(average/total_questions)).toString() })
+								if summary != null
+									p= summary.text
+				tr
+					td(style='text-align:right;font-weight:bold;')= "Average of "+session.answers.length+" responses:"
+					td= (total_response_average/session.answers.length)
+						- var summary2 = choices.find( ({ value }) => value === (Math.round(total_response_average/session.answers.length)).toString() )
+						if summary2 != null
+							p= summary2.text
+					each row, rowInd in session.answers
+						if rowInd > 0
+							td

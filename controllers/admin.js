@@ -229,7 +229,7 @@ function writeSpreadsheet(data, cb) {
 					curTeacher.cell(27, 2).string((score.total / score.count).toFixed(2)).style(style4).style({ font: { size: 9 } })	//dont average this
 				})
 				curTeacher.cell(28, 2).string("Questions").style({ alignment: { horizontal: 'center' } })
-				for (a = 2; a < 30; a++) {
+				for (a = 2;a < 30;a++) {
 					curTeacher.row(a).setHeight(12)
 				}
 				let counter = 0
@@ -260,7 +260,7 @@ function writeSpreadsheet(data, cb) {
 						curTeacher.column((columnCount + 2)).setWidth(10)
 						questionsTotal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 						sec.answers.forEach(secAnswers => {
-							for (i = 0; i < 20; i++) {
+							for (i = 0;i < 20;i++) {
 								questionsTotal[i] += secAnswers['q_0_' + i] * 1
 							}
 							if (secAnswers['q_0_20'] != '') {
@@ -268,7 +268,7 @@ function writeSpreadsheet(data, cb) {
 							}
 						})
 						curSecTotal = 0
-						for (i = 0; i < 20; i++) {
+						for (i = 0;i < 20;i++) {
 							curSecTotal += questionsTotal[i] * 1
 							curAve = questionsTotal[i] / sec.answers.length
 							curTeacher.cell((4 + i), (columnCount + columnIncrement)).number(parseFloat(curAve.toFixed(2))).style({ font: { size: 9 }, alignment: { horizontal: 'center' } })
@@ -350,7 +350,7 @@ function writeSpreadsheet(data, cb) {
 						emailScores.column((columnCount + 3)).setWidth(13)
 						questionsTotal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 						sec.answers.forEach(secAnswers => {
-							for (i = 0; i < 20; i++) {
+							for (i = 0;i < 20;i++) {
 								questionsTotal[i] += secAnswers['q_0_' + i] * 1
 							}
 							if (secAnswers['q_0_20'] != '') {
@@ -358,7 +358,7 @@ function writeSpreadsheet(data, cb) {
 							}
 						})
 						curSecTotal = 0
-						for (i = 0; i < 20; i++) {
+						for (i = 0;i < 20;i++) {
 							curSecTotal += questionsTotal[i] * 1
 							curAve = questionsTotal[i] / sec.answers.length
 							emailScores.cell((4 + i), (columnCount + columnIncrement)).number(curAve).style(style6)
@@ -662,11 +662,13 @@ exports.questionnaires = (req, res) => {
 		if (req.query.id)
 			single = allQuestions.find(({ cid }) => cid === parseInt(req.query.id))
 
-		console.log("")
-		console.log("")
-		console.log(single)
-		console.log("")
-		console.log("")
+		if (single) {
+			console.log("")
+			console.log("")
+			console.log(single)
+			console.log("")
+			console.log("")
+		}
 
 		res.render('questionnaire', {
 			title: 'questionnaires',
@@ -683,7 +685,7 @@ exports.createRawQuestionnaire = (req, res) => {
 	if (authentication(req)) {
 		let questionsDb = db.collection('questions')
 		let rawData = req.body.rawQuestionnaire
-		rawData = rawData.replace(/(\r\n|\n|\r)/gm, "");
+		rawData = rawData.replace(/(\r\n|\n|\r)/gm, "")
 		rawQuestionnaire = JSON.parse(rawData)
 		if (questionsDb.insert(rawQuestionnaire)) {
 			req.flash('success', { msg: 'Questionnaire ' + rawQuestionnaire.name + ' is now added.' })
@@ -738,7 +740,7 @@ exports.displayQuestionnaire = (req, res) => {
 		res.render('displayquestionnaire', {
 			title: 'View Questionnaire',
 			survey: existingQuestions
-		});
+		})
 	}
 
 }
@@ -787,7 +789,6 @@ exports.updateQuestionnaire = (req, res) => {
 		for (let [key, value] of Object.entries(req.body)) {
 			let currentKey = key.split("_")[0]
 			if (currentKey == 'evaluator') {
-				console.log("key: " + key + " Value: " + value)
 				if (editable) {
 					let sameItem = key.split("_")[2] || false
 					if (!sameItem) {
@@ -875,12 +876,17 @@ exports.updateQuestionnaire = (req, res) => {
 			}
 		})
 
+		let questionCount = 0
 		existingQuestion.questions.forEach((category, categoryCount) => {
 			category.category = categoryList[categoryCount].category
-			if (editable)
+			if (editable) {
+				console.log("SETTING CATEGORY HIDDEN TO " + categoryList[categoryCount].hide_category)
 				category.hide_category = categoryList[categoryCount].hide_category
 
-			category.questions.forEach((question, questionCount) => {
+				console.log("DONE SETTING IT: " + category.hide_category)
+			}
+
+			category.questions.forEach((question) => {
 				//your only editing the questions array here, I think
 				question.question = questionsList[questionCount].question
 				if (editable) {
@@ -888,7 +894,9 @@ exports.updateQuestionnaire = (req, res) => {
 					question.item_label = questionsList[questionCount].item_label
 					question.type = questionsList[questionCount].type
 					question.hide_question = questionsList[questionCount].hide_question
+					question.choices = questionsList[questionCount].choices
 				}
+				questionCount++
 			})
 		})
 
@@ -945,9 +953,6 @@ exports.questionnaireAddEvaluator = (req, res) => {
 
 		questionCount = 0
 
-		console.log(existingQuestion.evaluator)
-		console.log(existingQuestion.questions)
-
 		if (existingQuestion) {
 			if (questionsDb.update(questionnaireId, existingQuestion)) {
 				req.flash('success', { msg: 'Item Added.' })
@@ -977,9 +982,6 @@ exports.questionnaireRemoveEvaluator = (req, res) => {
 		})
 
 		questionCount = 0
-
-		console.log(existingQuestion.evaluator)
-		console.log(existingQuestion.questions)
 
 		if (existingQuestion) {
 			if (questionsDb.update(questionnaireId, existingQuestion)) {
@@ -1011,9 +1013,6 @@ exports.questionnaireAddCategory = (req, res) => {
 		}
 
 		questionCount = 0
-
-		console.log(existingQuestion.evaluator)
-		console.log(existingQuestion.questions)
 
 		if (parseInt(req.query.id) == 0) {
 			existingQuestion.questions.push(newCategoryItem)
@@ -1051,9 +1050,6 @@ exports.questionnaireRemoveCategory = (req, res) => {
 
 		questionCount = 0
 
-		console.log(existingQuestion.evaluator)
-		console.log(existingQuestion.questions)
-
 		if (existingQuestion) {
 			if (questionsDb.update(questionnaireId, existingQuestion)) {
 				req.flash('success', { msg: 'Category Removed.' })
@@ -1083,10 +1079,25 @@ exports.questionnaireAddQuestion = (req, res) => {
 		let newQuestionItem = {
 			heading: "",
 			item_label: "number",	//none, item, number
-			type: "input",	//input, choice
+			type: "choice",	//input, choice
 			hide_question: 'false',
-			question: "<b><i>" + question_ind + " New Question.</i></b>",
-			choices: []
+			question: question_ind + " New question",
+			choices: [{
+				value: "1",
+				text: "Strongly Disagree"
+			}, {
+				value: "2",
+				text: "Disagree"
+			}, {
+				value: "3",
+				text: "Somewhat Agree"
+			}, {
+				value: "4",
+				text: "Agree"
+			}, {
+				value: "5",
+				text: "Strongly Agree"
+			}]
 		}
 		questionCount = 0
 
@@ -1270,13 +1281,104 @@ exports.displayResults = (req, res) => {
 						})
 					})
 				}
-				res.render('results', {
-					title: "Results - " + req.query.id,
-					questions: session.questions,
-					session: session.session,
-					summary: result,
-					filter: { single: single, teacher: teacher, subject: subject, section: section }
-				})
+
+				if (session.questions.cid == 4 || session.questions.cid == 3) {
+					let sectionAverage = {}
+
+					// 1. prepare the container
+					session.questions.evaluator.filter(x => (x.question == 'Grade Level/Section')).map(x => {
+						return x.choices.map(x => {
+							sectionAverage[x.value] = {
+								averages: { 'Per Question': {}, 'Part A': 0, 'Part B': 0, 'Total': 0 },
+								answers: []
+							}
+							// return x.value
+						})
+					})[0]
+
+					session.answer_list.forEach(x => {
+						sectionAverage[x.evaluator_1].answers.push(x)
+					})
+
+					//2. fill the container
+					for (let [key, value1] of Object.entries(sectionAverage)) {
+						let totalA = 0
+						let totalB = 0
+						let totalAItems = 0
+						let totalBItems = 0
+						let averageEachQuestion = {}
+
+						for (let [key, value] of Object.entries(session.answer_list[0])) {
+							if (key.split('_')[0] == 'q')
+								averageEachQuestion[key] = (Number.isInteger(parseInt(value))) ? 0 : []
+						}
+
+						value1.answers.forEach(x => {
+							let singleA = 0
+							let singleAItems = 0
+							let singleB = 0
+							let singleBItems = 0
+
+							for (let [key2, value2] of Object.entries(x)) {	//this is each response
+								if (key2.split('_')[0] == 'q') {
+									if (Number.isInteger(parseInt(value2))) {
+										averageEachQuestion[key2] += parseInt(value2)
+										if (key2.split('_')[1] == '0') {
+											singleA += parseInt(value2)
+											singleAItems++
+											totalA += parseInt(value2)
+											totalAItems++
+										} else {
+											singleB += parseInt(value2)
+											singleBItems++
+											totalB += parseInt(value2)
+											totalBItems++
+										}
+									} else {
+										averageEachQuestion[key2].push(value2)
+									}
+								}
+							}
+
+							let singleAAverage = (singleAItems != 0) ? parseFloat((singleA / singleAItems).toFixed(2)) : 0
+							let singleBAverage = (singleBItems != 0) ? parseFloat((singleB / singleBItems).toFixed(2)) : 0
+							x['averages'] = {
+								'Part A': singleAAverage,
+								'Part B': singleBAverage,
+								'Total': (singleAAverage != 0 && singleBAverage != 0) ? parseFloat(((singleAAverage + singleBAverage) / 2).toFixed(2)) : 0,
+							}
+						})
+
+						if (value1.answers.length > 0) {
+							Object.entries(averageEachQuestion).forEach(([questTotKey, questTot]) => {
+								if (Number.isInteger(questTot)) {
+									averageEachQuestion[questTotKey] = parseFloat((questTot / value1.answers.length)).toFixed(2)
+								}
+							})
+						}
+
+						value1.averages['Per Question'] = averageEachQuestion
+						value1.averages['Part A'] = (totalAItems != 0) ? parseFloat((totalA / totalAItems).toFixed(2)) : 0
+						value1.averages['Part B'] = (totalBItems != 0) ? parseFloat((totalB / totalBItems).toFixed(2)) : 0
+						value1.averages['Total'] = (totalAItems != 0) ? ((value1.averages['Part A'] + value1.averages['Part B']) / 2).toFixed(2) : 0
+					}
+
+					res.render('results', {
+						title: "Results - " + req.query.id,
+						questions: session.questions,
+						session: session.session,
+						summary: sectionAverage,
+						filter: { single: single, teacher: teacher, subject: subject, section: section }
+					})
+				} else {
+					res.render('results', {
+						title: "Results - " + req.query.id,
+						questions: session.questions,
+						session: session.session,
+						summary: result,
+						filter: { single: single, teacher: teacher, subject: subject, section: section }
+					})
+				}
 			}
 		})
 	} else {
@@ -1287,7 +1389,6 @@ exports.displayResults = (req, res) => {
 
 exports.downloadResults = (req, res) => {
 	if (authentication(req)) {
-		console.log(req.query)
 		req.query.create = true
 		if (req.query.id == 'all') {
 			let sessionsDb = db.collection('sessions')
@@ -1309,7 +1410,6 @@ exports.downloadResults = (req, res) => {
 						res.zip(result)
 					else
 						res.download(result)
-
 				} else {
 					req.flash('errors', { msg: session.name + ' not downloaded.' })
 					res.redirect('/sessions')

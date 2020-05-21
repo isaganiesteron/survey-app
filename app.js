@@ -170,8 +170,6 @@ app.use((err, req, res, next) => {
  */
 
 
-//url = "localhost"
-console.log(url)
 
 //let listener = app.listen(0, url, () => {
 portNumber = 8000
@@ -180,10 +178,10 @@ tcpPortUsed.check(3000, 'localhost').then(function (inUse) {
 		portNumber = 0
 
 	let listener = app.listen(portNumber, url, () => {
-		if (!inUse)
-			console.log('App is running at http://' + url + ' in %s mode', app.get('env'))
-		else
-			console.log('App is running at http://' + url + ':%d in %s mode', listener.address().port, app.get('env'))
+		// if (!inUse)
+		// 	console.log('App is running at http://' + url + ' in %s mode', app.get('env'))
+		// else
+		console.log('App is running at http://' + url + ':%d in %s mode', listener.address().port, app.get('env'))
 		console.log('Press CTRL-C to stop\n')
 		//open('http://'+url+':'+listener.address().port+'/admin')
 	})

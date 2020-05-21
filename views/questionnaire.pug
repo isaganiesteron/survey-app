@@ -76,7 +76,7 @@ block content
 			b 
 				i Bold and Italicized text 
 
-		a.btn.btn-raised(href='/questionnaire/view?id='+single.cid+"&index="+categoryInd) VIEW Questionnaire
+		a.btn.btn-raised(href='/questionnaire/view?id='+single.cid) VIEW Questionnaire
 		form(action="/questionnaire/update", method='POST')
 			input(type='hidden', name='_csrf', value=_csrf)
 			input(type='hidden', name='questionnaireId', value=single.cid)
@@ -154,13 +154,13 @@ block content
 
 					.form-group
 						select.custom-select(name='category_'+categoryInd+"_hide")
-							if category.hide_category
+							if category.hide_category == 'true'
 								option(value="true" selected) Hidden
 								option(value="false") Not Hidded
 							else
 								option(value="true") Hidden
 								option(value="false" selected) Not Hidded
-					p(style="font-size:12px;padding-top:2px;") Hide Question
+					p(style="font-size:12px;padding-top:2px;") Hide Category
 
 				if category.questions.length < 1 && editable
 					p

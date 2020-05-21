@@ -78,16 +78,18 @@ block content
 
         - var letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
         - var letterInd = 0
+        - var quesLabelInd = 0
         each cat, catInd in survey.questions
           hr
           if cat.hide_category == "false"
             p.lead= cat.category
-          each ques, quesInd in cat.questions
+          each ques,quesInd in cat.questions
             - var currentQuestion = ""
             - var padding = ""
             if ques.item_label == "number"
-              - currentQuestion = (quesInd+1)+".  " + ques.question
+              - currentQuestion = (quesLabelInd+1)+".  " + ques.question
               - letterInd = 0
+              - quesLabelInd++
             else if ques.item_label == "letter"
               - currentQuestion = (letters[letterInd])+".  " + ques.question
               - padding = "padding-left:50px;"
