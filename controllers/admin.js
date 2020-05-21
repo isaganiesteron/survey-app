@@ -229,7 +229,7 @@ function writeSpreadsheet(data, cb) {
 					curTeacher.cell(27, 2).string((score.total / score.count).toFixed(2)).style(style4).style({ font: { size: 9 } })	//dont average this
 				})
 				curTeacher.cell(28, 2).string("Questions").style({ alignment: { horizontal: 'center' } })
-				for (a = 2;a < 30;a++) {
+				for (a = 2; a < 30; a++) {
 					curTeacher.row(a).setHeight(12)
 				}
 				let counter = 0
@@ -260,7 +260,7 @@ function writeSpreadsheet(data, cb) {
 						curTeacher.column((columnCount + 2)).setWidth(10)
 						questionsTotal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 						sec.answers.forEach(secAnswers => {
-							for (i = 0;i < 20;i++) {
+							for (i = 0; i < 20; i++) {
 								questionsTotal[i] += secAnswers['q_0_' + i] * 1
 							}
 							if (secAnswers['q_0_20'] != '') {
@@ -268,7 +268,7 @@ function writeSpreadsheet(data, cb) {
 							}
 						})
 						curSecTotal = 0
-						for (i = 0;i < 20;i++) {
+						for (i = 0; i < 20; i++) {
 							curSecTotal += questionsTotal[i] * 1
 							curAve = questionsTotal[i] / sec.answers.length
 							curTeacher.cell((4 + i), (columnCount + columnIncrement)).number(parseFloat(curAve.toFixed(2))).style({ font: { size: 9 }, alignment: { horizontal: 'center' } })
@@ -350,7 +350,7 @@ function writeSpreadsheet(data, cb) {
 						emailScores.column((columnCount + 3)).setWidth(13)
 						questionsTotal = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 						sec.answers.forEach(secAnswers => {
-							for (i = 0;i < 20;i++) {
+							for (i = 0; i < 20; i++) {
 								questionsTotal[i] += secAnswers['q_0_' + i] * 1
 							}
 							if (secAnswers['q_0_20'] != '') {
@@ -358,7 +358,7 @@ function writeSpreadsheet(data, cb) {
 							}
 						})
 						curSecTotal = 0
-						for (i = 0;i < 20;i++) {
+						for (i = 0; i < 20; i++) {
 							curSecTotal += questionsTotal[i] * 1
 							curAve = questionsTotal[i] / sec.answers.length
 							emailScores.cell((4 + i), (columnCount + columnIncrement)).number(curAve).style(style6)
@@ -1312,7 +1312,6 @@ exports.displayResults = (req, res) => {
 							if (key.split('_')[0] == 'q')
 								averageEachQuestion[key] = (Number.isInteger(parseInt(value))) ? 0 : []
 						}
-
 						value1.answers.forEach(x => {
 							let singleA = 0
 							let singleAItems = 0
@@ -1321,7 +1320,10 @@ exports.displayResults = (req, res) => {
 
 							for (let [key2, value2] of Object.entries(x)) {	//this is each response
 								if (key2.split('_')[0] == 'q') {
-									if (Number.isInteger(parseInt(value2))) {
+									// if (Number.isInteger(parseInt(value2))) {
+									if (key2 == 'q_1_6' || key2 == 'q_1_8' || key2 == 'q_1_12' || key2 == 'q_2_0') {
+										averageEachQuestion[key2].push(value2)
+									} else {
 										averageEachQuestion[key2] += parseInt(value2)
 										if (key2.split('_')[1] == '0') {
 											singleA += parseInt(value2)
@@ -1334,8 +1336,6 @@ exports.displayResults = (req, res) => {
 											totalB += parseInt(value2)
 											totalBItems++
 										}
-									} else {
-										averageEachQuestion[key2].push(value2)
 									}
 								}
 							}

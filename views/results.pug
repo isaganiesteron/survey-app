@@ -187,6 +187,32 @@ block content
 	else
 		// MODULAR LEARNING EVALUATION FORM FOR STUDENTS/PARENTS
 		if(questions.cid == 4 || questions.cid == 3)
+
+			//p.lead= JSON.stringify(questions)
+			- var partAchoices = (questions.questions[0].questions[0].choices)
+			- var partBchoices = questions.questions[1].questions.map(x=> (x.type == 'choice') ? x.choices : null)
+			p.lead= JSON.stringify(partBchoices)
+
+
+			table.table.table-condensed.table-hover
+				tr
+					th Section
+					th Part A (questions 1-10)
+					th Part B (questions 10-20)
+					th Total (All questions)
+				each section,sectionInd in Object.entries(summary)
+					tr
+						td
+							h4= (sectionInd+1)+") "+ section[0]
+							p.lead= "Based on "+ section[1].answers.length +" responders."
+						td
+							p.lead= section[1].averages['Part A']
+							p= partAchoices.map(x => (x.value == Math.round(section[1].averages['Part A'])) ? x.text : false).filter(x=> x)
+						td
+							p.lead= section[1].averages['Part B']
+						td
+							p.lead= section[1].averages['Total']
+
 			
 			//h1= JSON.stringify(summary)
 
